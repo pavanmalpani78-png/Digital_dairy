@@ -26,9 +26,8 @@ def D(x, default="0"):
         return Decimal(default)
 
 
-# ─────────────────────────────────────────────
-# SHOPKEEPER PROFILE  (one per shopkeeper/User)
-# ─────────────────────────────────────────────
+
+
 class ShopkeeperProfile(models.Model):
     user       = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     shop_name  = models.CharField(max_length=100, blank=True, default='')
@@ -174,17 +173,16 @@ class MilkOrder(models.Model):
         return f"{self.customer.name} - {self.product_type} - {self.total}"
 
     @staticmethod
-    def base_price_half_liter(brand_code: str) -> Decimal:
-        base = {
-            "AMUL": Decimal("27"),
-            "VIKAS": Decimal("26"),
-            "SARASWATI": Decimal("27"),
-            "AMAR": Decimal("26"),
-        }
-        return base.get(brand_code or "", Decimal("27"))
+    def base_price_half_liter(brand_code: str, milk_type: str) -> Decimal:
+        # Base price per 0.5 liter
+        if milk_type == "COW":
+            return Decimal("27")  # Cow is always 27 for 0.5L
+        elif milk_type == "BUFFALO":
+            return Decimal("37") if brand_code == "VIKAS" else Decimal("35")
+        return Decimal("35")  # Default fallback
 
     def milk_rate_from_base(self) -> Decimal:
-        base = self.base_price_half_liter(self.brand)
+        base = self.base_price_half_liter(self.brand, self.milk_type)
         factor = (D(self.pack_size, "0") / Decimal("0.5")) if self.pack_size else Decimal("0")
         return base * factor
 

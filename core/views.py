@@ -472,12 +472,13 @@ def bill_pdf(request, customer_id):
 
     columns = [
         ("Date", 55),
-        ("Product", 90),
-        ("Brand", 70),
+        ("Product", 65),
+        ("Brand", 65),
+        ("Type", 50),
         ("Pack", 45),
-        ("Pkts", 40),
-        ("Liters", 55),
-        ("Total", 70),
+        ("Pkts", 35),
+        ("Liters", 45),
+        ("Total", 65),
     ]
 
     c.setFillColorRGB(0.1, 0.1, 0.1)
@@ -531,10 +532,11 @@ def bill_pdf(request, customer_id):
         c.drawString(x, y + 4, str(o.date)); x += columns[0][1]
         c.drawString(x, y + 4, str(o.product_type)); x += columns[1][1]
         c.drawString(x, y + 4, str(o.brand or "-")); x += columns[2][1]
-        c.drawString(x, y + 4, str(o.pack_size or "-")); x += columns[3][1]
-        c.drawString(x, y + 4, str(o.packets or 0)); x += columns[4][1]
-        c.drawString(x, y + 4, str(o.total_liters or 0)); x += columns[5][1]
-        c.drawString(x, y + 4, money(o.total or 0)); x += columns[6][1]
+        c.drawString(x, y + 4, str(o.milk_type or "-")); x += columns[3][1]
+        c.drawString(x, y + 4, str(o.pack_size or "-")); x += columns[4][1]
+        c.drawString(x, y + 4, str(o.packets or 0)); x += columns[5][1]
+        c.drawString(x, y + 4, str(o.total_liters or 0)); x += columns[6][1]
+        c.drawString(x, y + 4, money(o.total or 0)); x += columns[7][1]
 
         y -= row_h
 
