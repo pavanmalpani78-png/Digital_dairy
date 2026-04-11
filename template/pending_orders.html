@@ -68,6 +68,7 @@
                         <td class="py-3 text-center fw-800 text-primary">₹ {{ o.total }}</td>
                         <td class="py-3 text-end px-4">
                             <div class="d-flex gap-2 justify-content-end align-items-center">
+                                <a href="{% url 'edit_order' o.id %}" class="btn btn-sm btn-outline-primary border-2 rounded-pill px-3 fw-600">Edit</a>
                                 <a href="{% url 'approve_order' o.id %}" class="btn btn-sm btn-success rounded-pill px-4 fw-700 shadow-sm">Approve</a>
                                 <a href="{% url 'reject_order' o.id %}" class="btn btn-sm btn-outline-danger border-2 rounded-pill px-3 fw-600" onclick="return confirm('Reject order from {{ o.customer.name }}?')">Reject</a>
                             </div>

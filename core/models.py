@@ -191,6 +191,16 @@ class MilkOrder(models.Model):
         - If pack_size+packets given -> packets system for ANY product
         - Else -> quantity * rate for ANY product (including MILK liters mode)
         """
+        # Auto-fill missing rate for non-MILK products to prevent 0 balance
+        if self.product_type != "MILK" and D(self.rate, "0") == Decimal("0") and getattr(self, 'customer_id', None):
+            last_order = MilkOrder.objects.filter(
+                customer_id=self.customer_id,
+                product_type=self.product_type,
+                rate__gt=0
+            ).order_by('-date', '-id').first()
+            if last_order:
+                self.rate = last_order.rate
+
         if self.pack_size and self.packets:
             size = D(self.pack_size, "0")
             pkts = D(self.packets, "0")
@@ -198,14 +208,16 @@ class MilkOrder(models.Model):
             if self.product_type == "MILK":
                 self.rate = self.milk_rate_from_base()   # per packet
                 self.total_liters = pkts * size
+                self.quantity = Decimal("0")
+                self.unit = ""
             else:
                 self.rate = D(self.rate, "0")
                 self.total_liters = Decimal("0")
+                self.quantity = pkts * size
+                if not self.unit:
+                    self.unit = "KG"
 
             self.total = pkts * self.rate
-
-            self.quantity = Decimal("0")
-            self.unit = ""
         else:
             q = D(self.quantity, "0")
             r = D(self.rate, "0")

@@ -49,7 +49,12 @@
                             {% if o.product_type == "MILK" %}
                             <span class="fw-600 text-primary">{{ o.total_liters }} L</span> <span class="small text-muted">Milk</span>
                             {% else %}
-                            <span class="fw-600 text-dark">{{ o.quantity }} {{ o.unit }}</span> <span class="small text-muted">{{ o.get_product_type_display }}</span>
+                                {% if o.quantity <= 0 and o.packets > 0 %}
+                                    <span class="fw-600 text-dark">{{ o.packets }} pkts</span> <span class="small text-muted">({{ o.pack_size }} per pkt)</span>
+                                {% else %}
+                                    <span class="fw-600 text-dark">{{ o.quantity }} {{ o.unit }}</span>
+                                {% endif %}
+                                <span class="small text-muted">{{ o.get_product_type_display }}</span>
                             {% endif %}
                         </td>
                         <form method="POST">
