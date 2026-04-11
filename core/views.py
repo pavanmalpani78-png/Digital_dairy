@@ -815,3 +815,5 @@ def delete_driver(request, pk):
     driver.delete()
     messages.success(request, f"Driver {name} removed.")
     return redirect("driver_list")
+
+

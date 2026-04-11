@@ -61,4 +61,6 @@ urlpatterns = [
     path("drivers/", views.driver_list, name="driver_list"),
     path("drivers/add/", views.add_driver, name="add_driver"),
     path("drivers/delete/<int:pk>/", views.delete_driver, name="delete_driver"),
+
+    
 ]
