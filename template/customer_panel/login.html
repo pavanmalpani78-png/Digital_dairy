@@ -32,11 +32,26 @@
 
             <form method="POST">
                 {% csrf_token %}
+
+                <!-- Shop Code (optional but recommended for security) -->
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 700; color: var(--text-meta); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 8px;">
+                        Shop Code <span style="font-weight: 400; text-transform: none; font-size: 0.75rem;">(given by your dairy owner)</span>
+                    </label>
+                    <div style="position: relative;">
+                        <i class="fas fa-store" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-meta); font-size: 0.9rem;"></i>
+                        <input type="text" name="shop_code" id="shop_code" placeholder="e.g. ramesh_dairy" autocomplete="organization" style="width: 100%; padding: 15px 15px 15px 45px; border-radius: 14px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 600; font-family: inherit; font-size: 0.95rem;">
+                    </div>
+                    <p style="font-size: 0.75rem; color: var(--text-meta); margin-top: 5px; margin-left: 4px;">
+                        <i class="fas fa-shield-halved"></i> Helps keep your data secure &amp; separate from other shops.
+                    </p>
+                </div>
+
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; font-weight: 700; color: var(--text-meta); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 8px;">Phone Number</label>
                     <div style="position: relative;">
                         <i class="fas fa-phone" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-meta); font-size: 0.9rem;"></i>
-                        <input type="text" name="phone" placeholder="Registered Phone" required style="width: 100%; padding: 15px 15px 15px 45px; border-radius: 14px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 600; font-family: inherit; font-size: 0.95rem;">
+                        <input type="text" name="phone" id="phone" placeholder="Registered Phone" required autocomplete="tel" style="width: 100%; padding: 15px 15px 15px 45px; border-radius: 14px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 600; font-family: inherit; font-size: 0.95rem;">
                     </div>
                 </div>
 
@@ -44,11 +59,11 @@
                     <label style="display: block; font-weight: 700; color: var(--text-meta); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 8px;">Access Password</label>
                     <div style="position: relative;">
                         <i class="fas fa-lock" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-meta); font-size: 0.9rem;"></i>
-                        <input type="password" name="password" placeholder="••••••••" required style="width: 100%; padding: 15px 15px 15px 45px; border-radius: 14px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 600; font-family: inherit; font-size: 0.95rem;">
+                        <input type="password" name="password" id="password" placeholder="••••••••" required autocomplete="current-password" style="width: 100%; padding: 15px 15px 15px 45px; border-radius: 14px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 600; font-family: inherit; font-size: 0.95rem;">
                     </div>
                 </div>
 
-                <button type="submit" class="btn-primary" style="width: 100%; padding: 16px; justify-content: center; font-size: 1rem; border-radius: 14px;">
+                <button type="submit" id="customer-login-btn" class="btn-primary" style="width: 100%; padding: 16px; justify-content: center; font-size: 1rem; border-radius: 14px;">
                     Login to Portal <i class="fas fa-arrow-right"></i>
                 </button>
             </form>

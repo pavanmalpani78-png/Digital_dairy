@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 
-from .models import Customer, MilkOrder, MilkTransaction, DeliveryBoy, UPIPayment
+from .models import Customer, MilkOrder, MilkTransaction, DeliveryBoy, UPIPayment, ShopkeeperProfile
 from .forms import CustomerForm, MilkTransactionForm
 
 def D(x, default="0"):
@@ -44,6 +44,9 @@ def dashboard(request):
         shopkeeper=request.user
     ).select_related('customer').order_by('-id')[:5]
 
+    # Pass shop profile if it exists (for displaying shop name in dashboard)
+    shop_profile = getattr(request.user, 'profile', None)
+
     context = {
         "total_customers": total_customers,
         "today_liters": today_liters,
@@ -51,6 +54,7 @@ def dashboard(request):
         "pending_orders_count": pending_orders_count,
         "recent_orders": recent_orders,
         "today": today,
+        "shop_profile": shop_profile,
     }
     return render(request, "dashboard.html", context)
 
@@ -71,26 +75,28 @@ def login_page(request):
 
 def signup_page(request):
     if request.method == "POST":
-        u = request.POST.get("username")
-        p = request.POST.get("password")
+        u  = request.POST.get("username")
+        p  = request.POST.get("password")
         cp = request.POST.get("confirm_password")
-        
+
         if p != cp:
             messages.error(request, "Passwords do not match!")
             return render(request, "signup.html")
-            
+
         if User.objects.filter(username=u).exists():
             messages.error(request, "Username is already taken. Please choose another.")
             return render(request, "signup.html")
-            
+
         try:
             user = User.objects.create_user(username=u, password=p)
+            # 🔒 Auto-create ShopkeeperProfile with shop_code = username
+            ShopkeeperProfile.objects.create(user=user, shop_code=u)
             login(request, user)
             messages.success(request, f"Welcome {u}! Your shop account has been created.")
             return redirect("dashboard")
         except Exception as e:
             messages.error(request, f"Registration failed: {str(e)}")
-            
+
     return render(request, "signup.html")
 
 def logout_view(request):
@@ -289,9 +295,10 @@ def customer_last_milk(request):
 def daily_milk_report(request):
     selected_date = request.GET.get("date") or timezone.localdate().isoformat()
 
+    # 🔒 Always scope to the logged-in shopkeeper — never expose other shops' data
     orders = (
         MilkOrder.objects
-        .filter(date=selected_date)
+        .filter(shopkeeper=request.user, date=selected_date)
         .select_related("customer")
         .order_by("-id")
     )
@@ -555,16 +562,40 @@ def customer_home(request):
 
 def customer_login(request):
     if request.method == "POST":
-        phone = (request.POST.get("phone") or "").strip()
-        password = (request.POST.get("password") or "").strip()
+        phone     = (request.POST.get("phone") or "").strip()
+        password  = (request.POST.get("password") or "").strip()
+        shop_code = (request.POST.get("shop_code") or "").strip()
 
-        customer = Customer.objects.filter(login_phone=phone, login_password=password).first()
+        # 🔒 Resolve the shopkeeper via ShopkeeperProfile.shop_code
+        if shop_code:
+            profile = ShopkeeperProfile.objects.filter(shop_code__iexact=shop_code).first()
+            if not profile:
+                messages.error(request, "Shop not found. Check your shop code.")
+                return redirect("customer_login")
+            customer = Customer.objects.filter(
+                shopkeeper=profile.user,
+                login_phone=phone,
+                login_password=password
+            ).first()
+        else:
+            # Fallback — no shop code provided
+            customer = Customer.objects.filter(
+                login_phone=phone,
+                login_password=password
+            ).first()
+
         if not customer:
-            messages.error(request, "Invalid phone or password")
+            messages.error(request, "Invalid phone, password, or shop code.")
             return redirect("customer_login")
 
-        request.session["customer_id"] = customer.id
-        request.session["customer_name"] = customer.name
+        # 🔒 Block inactive customers
+        if not customer.is_active:
+            messages.error(request, "Your account has been disabled. Please contact your dairy owner.")
+            return redirect("customer_login")
+
+        request.session["customer_id"]    = customer.id
+        request.session["customer_name"]  = customer.name
+        request.session["shopkeeper_id"]  = customer.shopkeeper_id
         return redirect("customer_dashboard")
 
     return render(request, "customer_panel/login.html")
@@ -573,17 +604,26 @@ def customer_dashboard(request):
     customer_id = request.session.get("customer_id")
     if not customer_id:
         return redirect("customer_login")
-        
-    customer = get_object_or_404(Customer, id=customer_id)
-    recent_orders = MilkOrder.objects.filter(customer_id=customer_id).order_by("-date", "-id")[:3]
+
+    # 🔒 Ensure this customer truly belongs to the shopkeeper stored in session
+    shopkeeper_id = request.session.get("shopkeeper_id")
+    customer = get_object_or_404(Customer, id=customer_id, shopkeeper_id=shopkeeper_id)
+
+    recent_orders = MilkOrder.objects.filter(
+        customer_id=customer_id,
+        shopkeeper_id=shopkeeper_id      # extra guard: only THIS shop's orders
+    ).order_by("-date", "-id")[:3]
+
     return render(request, "customer_panel/dashboard.html", {
         "customer": customer,
         "recent_orders": recent_orders
     })
 
 def customer_logout(request):
+    # 🔒 Clear ALL session keys set during customer login
     request.session.pop("customer_id", None)
     request.session.pop("customer_name", None)
+    request.session.pop("shopkeeper_id", None)
     return redirect("home")
 
 def customer_order_success(request):
@@ -639,10 +679,15 @@ def customer_place_order(request):
 
 def customer_my_orders(request):
     customer_id = request.session.get("customer_id")
+    shopkeeper_id = request.session.get("shopkeeper_id")
     if not customer_id:
         return redirect("customer_login")
 
-    orders = MilkOrder.objects.filter(customer_id=customer_id).order_by("-date", "-id")
+    # 🔒 Scope to this customer AND their shopkeeper — no cross-shop leakage
+    orders = MilkOrder.objects.filter(
+        customer_id=customer_id,
+        shopkeeper_id=shopkeeper_id
+    ).order_by("-date", "-id")
     return render(request, "customer_panel/my_orders.html", {"orders": orders})
 
 def customer_reorder(request, pk):
@@ -738,7 +783,8 @@ def shop_delivery_dashboard(request):
         order_id = request.POST.get("order_id")
         action = request.POST.get("action")
         
-        order = get_object_or_404(MilkOrder, id=order_id)
+        # 🔒 Scope the order lookup to this shopkeeper to prevent IDOR attacks
+        order = get_object_or_404(MilkOrder, id=order_id, shopkeeper=request.user)
         if action == "assign":
             boy_id = request.POST.get("delivery_boy")
             if boy_id:

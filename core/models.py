@@ -2,6 +2,7 @@ from django.db import models
 from decimal import Decimal, InvalidOperation
 from django.utils import timezone
 from django.contrib.auth.models import User
+import re
 
 
 PRODUCT_TYPES = (
@@ -25,6 +26,30 @@ def D(x, default="0"):
         return Decimal(default)
 
 
+# ─────────────────────────────────────────────
+# SHOPKEEPER PROFILE  (one per shopkeeper/User)
+# ─────────────────────────────────────────────
+class ShopkeeperProfile(models.Model):
+    user       = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    shop_name  = models.CharField(max_length=100, blank=True, default='')
+    shop_address = models.TextField(blank=True, default='')
+    phone      = models.CharField(max_length=15, blank=True, default='')
+    upi_id     = models.CharField(max_length=100, blank=True, default='', help_text='e.g. name@upi')
+    # Unique code customers use to identify their shop at login
+    shop_code  = models.CharField(max_length=50, unique=True, blank=True,
+                                  help_text='Auto-filled from username. Share this with your customers.')
+
+    def save(self, *args, **kwargs):
+        # Auto-generate shop_code from username if not set
+        if not self.shop_code:
+            base = re.sub(r'[^a-z0-9_]', '', self.user.username.lower())
+            self.shop_code = base or f'shop{self.user.id}'
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.shop_name or self.user.username
+
+
 class Customer(models.Model):
     shopkeeper = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
@@ -33,8 +58,10 @@ class Customer(models.Model):
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     # Customer panel login
-    login_phone = models.CharField(max_length=15, null=True, blank=True)
+    login_phone    = models.CharField(max_length=15, null=True, blank=True)
     login_password = models.CharField(max_length=50, null=True, blank=True)
+    # Shopkeeper can disable a customer's login access
+    is_active      = models.BooleanField(default=True, help_text='Uncheck to block this customer from logging in.')
 
     class Meta:
         unique_together = ('shopkeeper', 'login_phone')
