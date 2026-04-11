@@ -126,13 +126,14 @@
                     <p>Customer bill with all orders (Milk + other products)</p>
                     <div class="d-flex flex-wrap gap-2 mt-2">
                         <span class="badge-soft">Customer: {{ customer.name }}</span>
+                        <span class="badge-soft">Period: {{ start_date|default:"Beginning" }} to {{ end_date|default:"Today" }}</span>
                         <span class="badge-soft">Orders: {{ orders|length }}</span>
                     </div>
                 </div>
 
                 <div class="d-flex gap-2">
-                    <a href="{% url 'bill_select_customer' %}" class="btn btn-light btn-pill">Change Customer</a>
-                    <a href="{% url 'bill_pdf' customer.id %}" class="btn btn-dark btn-pill">Download PDF</a>
+                    <a href="{% url 'bill_select_customer' %}" class="btn btn-light btn-pill border shadow-sm">Change Selection</a>
+                    <a href="{% url 'bill_pdf' customer.id %}?start={{ start_date }}&end={{ end_date }}" class="btn btn-dark btn-pill shadow-sm">Download PDF</a>
                 </div>
             </div>
 

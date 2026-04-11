@@ -1,19 +1,89 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-  <div class="container-fluid">
-    <!-- <a class="navbar-brand fw-bold" href="{% url 'home' %}">🥛 Milk Khata</a> -->
-    <div class="navbar-nav">
-      <a class="nav-link" href="{% url 'customer_page' %}">Customers</a>
-      <a class="nav-link" href="{% url 'milk_order' %}">Milk Orders</a>
-      <a class="nav-link fw-semibold" href="{% url 'bill_select_customer' %}">Bill</a>
-      <a class="nav-link" href="{% url 'transaction_page' %}">Payment Status</a>
-      <a class="nav-link" href="{% url 'daily_milk_report' %}">Daily Report</a>
-      <a class="nav-link" href="{% url 'pending_orders' %}">Pending Orders</a>
-
-
-
-
-      <a class="nav-link" href="{% url 'home' %}">Home</a>
-
+<nav class="navbar navbar-expand-xl navbar-blur sticky-top py-2">
+  <div class="container-fluid px-lg-5">
+    <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% url 'home' %}">
+      <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+        <i class="bi bi-droplet-fill text-white" style="font-size: 12px;"></i>
+      </div>
+      <span class="text-gradient fs-5">Digital Dairy</span>
+    </a>
+    
+    <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="navbarMain">
+      {% if user.is_authenticated %}
+      <ul class="navbar-nav ms-xl-4 gap-1">
+        <li class="nav-item">
+          <a class="nav-link px-2 rounded-pill small fw-600 {% if request.resolver_match.url_name == 'dashboard' %}bg-primary text-white shadow-sm{% endif %}" href="{% url 'dashboard' %}">
+            <i class="bi bi-grid-1x2-fill me-1"></i> Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link px-2 rounded-pill small fw-600 {% if request.resolver_match.url_name == 'customer_page' %}bg-primary text-white shadow-sm{% endif %}" href="{% url 'customer_page' %}">
+            <i class="bi bi-people-fill me-1"></i> Customers
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link px-2 rounded-pill small fw-600 {% if request.resolver_match.url_name == 'milk_order' %}bg-primary text-white shadow-sm{% endif %}" href="{% url 'milk_order' %}">
+            <i class="bi bi-cart-fill me-1"></i> Orders
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link px-2 rounded-pill small fw-600 {% if request.resolver_match.url_name == 'bill_select_customer' %}bg-primary text-white shadow-sm{% endif %}" href="{% url 'bill_select_customer' %}">
+            <i class="bi bi-receipt me-1"></i> Bills
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link px-2 rounded-pill small fw-600 {% if request.resolver_match.url_name == 'daily_milk_report' %}bg-primary text-white shadow-sm{% endif %}" href="{% url 'daily_milk_report' %}">
+            <i class="bi bi-graph-up me-1"></i> Reports
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link px-2 rounded-pill small fw-600 {% if request.resolver_match.url_name == 'pending_orders' %}bg-primary text-white shadow-sm{% endif %}" href="{% url 'pending_orders' %}">
+            <i class="bi bi-clock-history me-1"></i> Pending
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link px-2 rounded-pill small fw-600 {% if request.resolver_match.url_name == 'transaction_page' %}bg-primary text-white shadow-sm{% endif %}" href="{% url 'transaction_page' %}">
+            <i class="bi bi-cash-stack me-1"></i> Payments
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link px-2 rounded-pill small fw-600 {% if request.resolver_match.url_name == 'shop_delivery_dashboard' %}bg-primary text-white shadow-sm{% endif %}" href="{% url 'shop_delivery_dashboard' %}">
+            <i class="bi bi-truck me-1"></i> Deliveries
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link px-2 rounded-pill small fw-600 {% if request.resolver_match.url_name == 'driver_list' %}bg-primary text-white shadow-sm{% endif %}" href="{% url 'driver_list' %}">
+            <i class="bi bi-person-badge me-1"></i> Drivers
+          </a>
+        </li>
+      </ul>
+      {% endif %}
+      
+      <div class="ms-auto d-flex align-items-center gap-2">
+        {% if user.is_authenticated %}
+          <div class="d-flex align-items-center gap-2 me-2">
+            <div class="d-none d-xxl-block text-end">
+                <div class="fw-bold fs-7 text-dark" style="line-height: 1;">{{ user.username }}</div>
+                <div class="text-muted" style="font-size: 9px;">Shopkeeper</div>
+            </div>
+            <a href="{% url 'logout' %}" class="btn btn-outline-danger border-2 rounded-4 px-3 py-1 fw-600 fs-7">
+              Logout <i class="bi bi-box-arrow-right ms-1"></i>
+            </a>
+          </div>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn-premium py-2 px-4 shadow-sm">Login <i class="bi bi-arrow-right"></i></a>
+        {% endif %}
+      </div>
     </div>
   </div>
 </nav>
+
+<style>
+  .fs-7 { font-size: 0.85rem; }
+  .fw-600 { font-weight: 600; }
+  .navbar-nav .nav-link { transition: all 0.2s ease; }
+  .navbar-nav .nav-link:hover:not(.bg-primary) { background: rgba(0, 97, 255, 0.05); color: var(--primary); }
+</style>

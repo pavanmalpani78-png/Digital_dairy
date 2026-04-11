@@ -4,8 +4,11 @@ from django.http import JsonResponse, HttpResponse
 from django.db.models import Sum
 from decimal import Decimal, InvalidOperation
 from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 
-from .models import Customer, MilkOrder, MilkTransaction
+from .models import Customer, MilkOrder, MilkTransaction, DeliveryBoy, UPIPayment
 from .forms import CustomerForm, MilkTransactionForm
 
 def D(x, default="0"):
@@ -20,108 +23,184 @@ def D(x, default="0"):
         return Decimal(default)
 
 # ---------- BASIC PAGES ----------
+@login_required
 def dashboard(request):
-    return render(request, "dashboard.html")
+    today = timezone.localdate()
+    
+    # Metrics
+    total_customers = Customer.objects.filter(shopkeeper=request.user).count()
+    
+    today_orders = MilkOrder.objects.filter(shopkeeper=request.user, date=today)
+    today_liters = today_orders.aggregate(Sum('total_liters'))['total_liters__sum'] or 0
+    today_total = today_orders.aggregate(Sum('total'))['total__sum'] or 0
+    
+    pending_orders_count = MilkOrder.objects.filter(
+        shopkeeper=request.user, 
+        placed_by="CUSTOMER", 
+        status="PENDING"
+    ).count()
+    
+    recent_orders = MilkOrder.objects.filter(
+        shopkeeper=request.user
+    ).select_related('customer').order_by('-id')[:5]
+
+    context = {
+        "total_customers": total_customers,
+        "today_liters": today_liters,
+        "today_total": today_total,
+        "pending_orders_count": pending_orders_count,
+        "recent_orders": recent_orders,
+        "today": today,
+    }
+    return render(request, "dashboard.html", context)
 
 def home(request):
     return render(request, "home.html")
 
 def login_page(request):
     if request.method == "POST":
-        return redirect("home")
+        u = request.POST.get("username")
+        p = request.POST.get("password")
+        user = authenticate(request, username=u, password=p)
+        if user is not None:
+            login(request, user)
+            return redirect("dashboard")
+        else:
+            messages.error(request, "Invalid username or password.")
     return render(request, "login.html")
 
 def signup_page(request):
     if request.method == "POST":
-        return redirect("home")
+        u = request.POST.get("username")
+        p = request.POST.get("password")
+        cp = request.POST.get("confirm_password")
+        
+        if p != cp:
+            messages.error(request, "Passwords do not match!")
+            return render(request, "signup.html")
+            
+        if User.objects.filter(username=u).exists():
+            messages.error(request, "Username is already taken. Please choose another.")
+            return render(request, "signup.html")
+            
+        try:
+            user = User.objects.create_user(username=u, password=p)
+            login(request, user)
+            messages.success(request, f"Welcome {u}! Your shop account has been created.")
+            return redirect("dashboard")
+        except Exception as e:
+            messages.error(request, f"Registration failed: {str(e)}")
+            
     return render(request, "signup.html")
+
+def logout_view(request):
+    logout(request)
+    return redirect("home")
 
 def terms_page(request):
     return render(request, "terms.html")
 
 # ---------- CUSTOMER CRUD (SHOPKEEPER) ----------
+@login_required
 def customer_page(request):
-    customers = Customer.objects.all()
+    customers = Customer.objects.filter(shopkeeper=request.user)
     return render(request, "customer.html", {"customers": customers})
 
+@login_required
 def add_customer(request):
     if request.method == "POST":
         form = CustomerForm(request.POST)
         if form.is_valid():
-            form.save()
+            c = form.save(commit=False)
+            c.shopkeeper = request.user
+            c.save()
             return redirect("customer_page")
     else:
         form = CustomerForm()
     return render(request, "add_customer.html", {"form": form})
 
+@login_required
 def edit_customer(request, id):
-    customer = get_object_or_404(Customer, id=id)
+    customer = get_object_or_404(Customer, id=id, shopkeeper=request.user)
     if request.method == "POST":
         customer.name = request.POST.get("name")
         customer.phone = request.POST.get("phone")
         customer.address = request.POST.get("address")
         customer.balance = request.POST.get("balance") or 0
+        customer.login_phone = request.POST.get("login_phone")
+        customer.login_password = request.POST.get("login_password")
         customer.save()
         return redirect("customer_page")
     return render(request, "edit_customer.html", {"customer": customer})
 
+@login_required
 def delete_customer(request, id):
-    customer = get_object_or_404(Customer, id=id)
+    customer = get_object_or_404(Customer, id=id, shopkeeper=request.user)
     customer.delete()
     return redirect("customer_page")
 
 # ---------- MILK ORDER (SHOPKEEPER) ----------
+@login_required
 def milk_order(request):
-    customers = Customer.objects.all().order_by("name")
-
     selected_date = request.GET.get("date")
-    if selected_date:
-        orders = MilkOrder.objects.filter(date=selected_date).order_by("-id")
-    else:
+    if not selected_date:
         selected_date = timezone.localdate().isoformat()
-        orders = MilkOrder.objects.filter(date=selected_date).order_by("-id")
-
-    if request.method == "POST":
-        customer_id = request.POST.get("customer")
-        product_type = request.POST.get("product_type")
-
-        date_str = request.POST.get("date") or selected_date
-
-        brand = request.POST.get("brand") or None
-        milk_type = request.POST.get("milk_type") or None
-        pack_size = request.POST.get("pack_size") or None
-        packets = request.POST.get("packets") or 0
-
-        quantity = request.POST.get("quantity") or 0
-        unit = request.POST.get("unit") or ""
-        rate = request.POST.get("rate") or 0
-
-        obj = MilkOrder(
-            customer_id=customer_id,
-            product_type=product_type,
-            date=date_str,
-            brand=brand,
-            milk_type=milk_type,
-            pack_size=pack_size,
-            packets=packets,
-            quantity=quantity,
-            unit=unit,
-            rate=rate,
-            placed_by="SHOPKEEPER",
-            status="APPROVED",
-        )
-        obj.save()
-        return redirect(f"/milkorder/?date={date_str}")
-
+    
+    orders = MilkOrder.objects.filter(shopkeeper=request.user, date=selected_date).order_by("-id")
     return render(request, "milk_order.html", {
-        "customers": customers,
         "orders": orders,
         "selected_date": selected_date,
     })
 
+@login_required
+def add_milk_order(request):
+    customers = Customer.objects.filter(shopkeeper=request.user).order_by("name")
+    selected_date = request.GET.get("date") or timezone.localdate().isoformat()
+
+    if request.method == "POST":
+        customer_id = request.POST.get("customer")
+        product_type = request.POST.get("product_type")
+        date_str = request.POST.get("date") or selected_date
+        brand = request.POST.get("brand") or None
+        milk_type = request.POST.get("milk_type") or None
+        pack_size = request.POST.get("pack_size") or None
+        packets = request.POST.get("packets") or 0
+        quantity = request.POST.get("quantity") or 0
+        unit = request.POST.get("unit") or ""
+        rate = request.POST.get("rate") or 0
+
+        try:
+            obj = MilkOrder(
+                shopkeeper=request.user,
+                customer_id=customer_id,
+                product_type=product_type,
+                date=date_str,
+                brand=brand,
+                milk_type=milk_type,
+                pack_size=pack_size,
+                packets=packets,
+                quantity=quantity,
+                unit=unit,
+                rate=rate,
+                placed_by="SHOPKEEPER",
+                status="APPROVED",
+            )
+            obj.save()
+            messages.success(request, f"Order for {obj.customer.name} on {obj.date} recorded successfully!")
+            return redirect(f"/milkorder/?date={date_str}")
+        except Exception as e:
+            messages.error(request, f"Failed to save order: {str(e)}")
+            return redirect("add_milk_order")
+
+    return render(request, "add_milk_order.html", {
+        "customers": customers,
+        "selected_date": selected_date,
+    })
+
+@login_required
 def edit_order(request, pk):
-    order = get_object_or_404(MilkOrder, pk=pk)
-    customers = Customer.objects.all().order_by("name")
+    order = get_object_or_404(MilkOrder, pk=pk, shopkeeper=request.user)
+    customers = Customer.objects.filter(shopkeeper=request.user).order_by("name")
 
     if request.method == "POST":
         order.customer_id = request.POST.get("customer")
@@ -152,28 +231,40 @@ def edit_order(request, pk):
 
     return render(request, "edit_order.html", {"order": order, "customers": customers})
 
+@login_required
 def delete_order(request, pk):
-    order = get_object_or_404(MilkOrder, pk=pk)
+    order = get_object_or_404(MilkOrder, pk=pk, shopkeeper=request.user)
     d = order.date
     order.delete()
     return redirect(f"/milkorder/?date={d}")
 
 # ---------- TRANSACTIONS ----------
+@login_required
 def transaction_page(request):
-    transactions = MilkTransaction.objects.select_related("customer").order_by("-date", "-id")
+    transactions = MilkTransaction.objects.filter(shopkeeper=request.user).select_related("customer").order_by("-date", "-id")
     return render(request, "transaction.html", {"transactions": transactions})
 
+@login_required
 def add_transaction(request):
     if request.method == "POST":
         form = MilkTransactionForm(request.POST)
         if form.is_valid():
             t = form.save(commit=False)
+            t.shopkeeper = request.user
             t.amount = D(t.qty, "0") * D(t.rate, "0")
             t.save()
             return redirect("transaction_page")
     else:
         form = MilkTransactionForm()
     return render(request, "add_transaction.html", {"form": form})
+
+@login_required
+def toggle_transaction_status(request, pk):
+    if request.method == "POST":
+        t = get_object_or_404(MilkTransaction, pk=pk, shopkeeper=request.user)
+        t.payment_status = "UNPAID" if t.payment_status == "PAID" else "PAID"
+        t.save()
+    return redirect("transaction_page")
 
 # API auto-fill
 def customer_last_milk(request):
@@ -194,6 +285,7 @@ def customer_last_milk(request):
     return JsonResponse({"ok": True, "liters": float(order.total_liters), "rate": float(rate_per_liter)})
 
 # ---------- DAILY REPORT ----------
+@login_required
 def daily_milk_report(request):
     selected_date = request.GET.get("date") or timezone.localdate().isoformat()
 
@@ -224,10 +316,6 @@ def daily_milk_report(request):
     })
 
 # ---------- BILL (HTML + PDF) ----------
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse
-from django.db.models import Sum
-from django.utils import timezone
 from django.conf import settings
 
 from reportlab.pdfgen import canvas
@@ -240,12 +328,16 @@ from .models import Customer, MilkOrder
 
 
 # 1️⃣ Bill home – select customer
+@login_required
 def bill_select_customer(request):
-    customers = Customer.objects.all().order_by("name")
+    customers = Customer.objects.filter(shopkeeper=request.user).order_by("name")
 
     if request.method == "POST":
         customer_id = request.POST.get("customer")
-        return redirect("bill_view", customer_id=customer_id)
+        start = request.POST.get("start_date")
+        end = request.POST.get("end_date")
+        url = f"/bill/view/{customer_id}/?start={start}&end={end}"
+        return redirect(url)
 
     return render(request, "bill_select_customer.html", {
         "customers": customers
@@ -253,10 +345,17 @@ def bill_select_customer(request):
 
 
 # 2️⃣ Bill view (HTML)
+@login_required
 def bill_view(request, customer_id):
-    customer = get_object_or_404(Customer, id=customer_id)
+    customer = get_object_or_404(Customer, id=customer_id, shopkeeper=request.user)
+    start_date = request.GET.get("start")
+    end_date = request.GET.get("end")
 
-    orders = MilkOrder.objects.filter(customer=customer).order_by("-date", "-id")
+    orders = MilkOrder.objects.filter(customer=customer).order_by("date", "id")
+    if start_date:
+        orders = orders.filter(date__gte=start_date)
+    if end_date:
+        orders = orders.filter(date__lte=end_date)
 
     totals = orders.aggregate(
         total_liters=Sum("total_liters"),
@@ -267,6 +366,8 @@ def bill_view(request, customer_id):
     return render(request, "bill_view.html", {
         "customer": customer,
         "orders": orders,
+        "start_date": start_date,
+        "end_date": end_date,
         "total_liters": totals["total_liters"] or 0,
         "total_qty": totals["total_qty"] or 0,
         "total_amount": totals["total_amount"] or 0,
@@ -274,14 +375,17 @@ def bill_view(request, customer_id):
 
 
 # 3️⃣ Bill PDF (download)
+@login_required
 def bill_pdf(request, customer_id):
-    customer = get_object_or_404(Customer, id=customer_id)
+    customer = get_object_or_404(Customer, id=customer_id, shopkeeper=request.user)
+    start_date = request.GET.get("start")
+    end_date = request.GET.get("end")
 
-    orders = (
-        MilkOrder.objects
-        .filter(customer=customer)
-        .order_by("date", "id")
-    )
+    orders = MilkOrder.objects.filter(customer=customer).order_by("date", "id")
+    if start_date:
+        orders = orders.filter(date__gte=start_date)
+    if end_date:
+        orders = orders.filter(date__lte=end_date)
 
     totals = orders.aggregate(
         total_liters=Sum("total_liters"),
@@ -461,14 +565,26 @@ def customer_login(request):
 
         request.session["customer_id"] = customer.id
         request.session["customer_name"] = customer.name
-        return redirect("customer_place_order")
+        return redirect("customer_dashboard")
 
     return render(request, "customer_panel/login.html")
+
+def customer_dashboard(request):
+    customer_id = request.session.get("customer_id")
+    if not customer_id:
+        return redirect("customer_login")
+        
+    customer = get_object_or_404(Customer, id=customer_id)
+    recent_orders = MilkOrder.objects.filter(customer_id=customer_id).order_by("-date", "-id")[:3]
+    return render(request, "customer_panel/dashboard.html", {
+        "customer": customer,
+        "recent_orders": recent_orders
+    })
 
 def customer_logout(request):
     request.session.pop("customer_id", None)
     request.session.pop("customer_name", None)
-    return redirect("customer_home")
+    return redirect("home")
 
 def customer_order_success(request):
     return render(request, "customer_panel/order_success.html")
@@ -489,30 +605,36 @@ def customer_place_order(request):
         quantity = D(request.POST.get("quantity"), "0")
         unit = (request.POST.get("unit") or "").strip()
         rate = D(request.POST.get("rate"), "0")
+        date_str = request.POST.get("date")
 
-        # Safety: other products must have rate, if missing then 0 remains
-        if product_type != "MILK" and rate == 0:
-            # you can show message, but still allow (your choice)
-            pass
+        payment_method = request.POST.get("payment_method") or "COD"
+        customer = get_object_or_404(Customer, id=customer_id)
 
-        MilkOrder.objects.create(
-            customer_id=customer_id,
-            product_type=product_type,
-            quantity=quantity,
-            unit=unit,
-            rate=rate,
-            brand=brand,
-            milk_type=milk_type,
-            pack_size=pack_size,
-            packets=packets,
-            placed_by="CUSTOMER",
-            status="PENDING",
-        )
+        order_data = {
+            "shopkeeper": customer.shopkeeper,
+            "customer_id": customer_id,
+            "product_type": product_type,
+            "quantity": quantity,
+            "unit": unit,
+            "rate": rate,
+            "brand": brand,
+            "milk_type": milk_type,
+            "pack_size": pack_size,
+            "packets": packets,
+            "payment_method": payment_method,
+            "placed_by": "CUSTOMER",
+            "status": "PENDING",
+        }
+        
+        if date_str:
+            order_data["date"] = date_str
 
+        MilkOrder.objects.create(**order_data)
         return redirect("customer_order_success")
 
     return render(request, "customer_panel/place_order.html", {
         "customer_name": request.session.get("customer_name"),
+        "selected_date": timezone.localdate().isoformat(),
     })
 
 def customer_my_orders(request):
@@ -523,20 +645,173 @@ def customer_my_orders(request):
     orders = MilkOrder.objects.filter(customer_id=customer_id).order_by("-date", "-id")
     return render(request, "customer_panel/my_orders.html", {"orders": orders})
 
+def customer_reorder(request, pk):
+    customer_id = request.session.get("customer_id")
+    if not customer_id:
+        return redirect("customer_login")
+        
+    old_order = get_object_or_404(MilkOrder, pk=pk, customer_id=customer_id)
+    
+    # Create new order based on old one
+    MilkOrder.objects.create(
+        shopkeeper=old_order.shopkeeper,
+        customer_id=customer_id,
+        product_type=old_order.product_type,
+        quantity=old_order.quantity,
+        unit=old_order.unit,
+        rate=old_order.rate,
+        brand=old_order.brand,
+        milk_type=old_order.milk_type,
+        pack_size=old_order.pack_size,
+        packets=old_order.packets,
+        payment_method=old_order.payment_method,
+        placed_by="CUSTOMER",
+        status="PENDING",
+        date=timezone.localdate()
+    )
+    
+    messages.success(request, "Order repeated successfully! Please check your status.")
+    return redirect("customer_my_orders")
+
+def customer_statement(request):
+    customer_id = request.session.get("customer_id")
+    if not customer_id:
+        return redirect("customer_login")
+
+    customer = get_object_or_404(Customer, id=customer_id)
+
+    # Use MilkOrders as the statement source (approved orders placed by/for this customer)
+    orders = MilkOrder.objects.filter(
+        customer=customer,
+        status="APPROVED"
+    ).order_by("-date", "-id")
+
+    total_amount = orders.aggregate(Sum("total"))["total__sum"] or 0
+
+    # Paid = orders marked as PAID in delivery
+    total_paid = orders.filter(payment_status="PAID").aggregate(Sum("total"))["total__sum"] or 0
+    total_unpaid = orders.filter(payment_status="UNPAID").aggregate(Sum("total"))["total__sum"] or 0
+
+    return render(request, "customer_panel/statement.html", {
+        "customer": customer,
+        "orders": orders,
+        "total_amount": total_amount,
+        "total_paid": total_paid,
+        "total_unpaid": total_unpaid,
+    })
+
 # ---------- SHOP: PENDING ORDERS + APPROVE/REJECT ----------
+@login_required
 def shop_pending_orders(request):
-    orders = MilkOrder.objects.filter(placed_by="CUSTOMER", status="PENDING").order_by("-date", "-id")
+    orders = MilkOrder.objects.filter(shopkeeper=request.user, placed_by="CUSTOMER", status="PENDING").order_by("-date", "-id")
     # ✅ your template is in templates root => "pending_orders.html"
     return render(request, "pending_orders.html", {"orders": orders})
 
+@login_required
 def approve_order(request, pk):
-    o = get_object_or_404(MilkOrder, pk=pk)
+    o = get_object_or_404(MilkOrder, pk=pk, shopkeeper=request.user)
     o.status = "APPROVED"
     o.save()
     return redirect("pending_orders")
 
+@login_required
 def reject_order(request, pk):
-    o = get_object_or_404(MilkOrder, pk=pk)
+    o = get_object_or_404(MilkOrder, pk=pk, shopkeeper=request.user)
     o.status = "REJECTED"
     o.save()
     return redirect("pending_orders")
+
+# UPI Payment view is disabled (Option A - removing payment from customer side)
+def customer_upi_payment(request):
+    customer_id = request.session.get("customer_id")
+    if not customer_id:
+        return redirect("customer_login")
+    return redirect("customer_dashboard")
+
+@login_required
+def shop_delivery_dashboard(request):
+    selected_date = request.GET.get("date") or timezone.localdate().isoformat()
+    orders = MilkOrder.objects.filter(shopkeeper=request.user, date=selected_date).select_related("customer", "delivery_boy").order_by("-id")
+    delivery_boys = DeliveryBoy.objects.filter(shopkeeper=request.user, is_active=True)
+    
+    if request.method == "POST":
+        order_id = request.POST.get("order_id")
+        action = request.POST.get("action")
+        
+        order = get_object_or_404(MilkOrder, id=order_id)
+        if action == "assign":
+            boy_id = request.POST.get("delivery_boy")
+            if boy_id:
+                order.delivery_boy_id = boy_id
+                order.delivery_status = "OUT_FOR_DELIVERY"
+                order.save()
+        elif action == "mark_delivered_paid" or action == "mark_delivered_unpaid":
+            order.delivery_status = "DELIVERED"
+            new_status = "PAID" if action == "mark_delivered_paid" else "UNPAID"
+            order.payment_status = new_status
+            order.save()
+            
+            # Create a matching transaction for bookkeeping
+            qty = order.total_liters if order.product_type == "MILK" else order.quantity
+            unit = "L" if order.product_type == "MILK" else order.unit
+            
+            MilkTransaction.objects.create(
+                shopkeeper=request.user,
+                customer=order.customer,
+                product_type=order.product_type,
+                qty=qty,
+                unit=unit,
+                rate=order.rate,
+                amount=order.total,
+                payment_status=new_status,
+                note=f"Auto-generated from Delivery #{order.id}"
+            )
+            messages.success(request, f"Order #{order.id} marked as {new_status} and transaction recorded.")
+
+        elif action == "cancel_assignment":
+            order.delivery_status = "PENDING"
+            order.delivery_boy = None
+            order.payment_status = "UNPAID"
+            order.save()
+            messages.info(request, f"Order #{order.id} has been reset to Pending. Ready to reassign.")
+            
+        return redirect(f"/shop/deliveries/?date={selected_date}")
+        
+    return render(request, "delivery_dashboard.html", {
+        "orders": orders,
+        "delivery_boys": delivery_boys,
+        "selected_date": selected_date
+    })
+
+# ---------- DRIVER MANAGEMENT ----------
+@login_required
+def driver_list(request):
+    drivers = DeliveryBoy.objects.filter(shopkeeper=request.user)
+    return render(request, "driver_list.html", {"drivers": drivers})
+
+@login_required
+def add_driver(request):
+    if request.method == "POST":
+        name = request.POST.get("name")
+        phone = request.POST.get("phone")
+        if DeliveryBoy.objects.filter(shopkeeper=request.user, phone=phone).exists():
+            messages.error(request, "Driver with this phone already exists.")
+            return redirect("add_driver")
+        
+        DeliveryBoy.objects.create(
+            shopkeeper=request.user,
+            name=name,
+            phone=phone,
+            is_active=True
+        )
+        messages.success(request, f"Driver {name} added successfully!")
+        return redirect("driver_list")
+    return render(request, "add_driver.html")
+
+@login_required
+def delete_driver(request, pk):
+    driver = get_object_or_404(DeliveryBoy, id=pk, shopkeeper=request.user)
+    name = driver.name
+    driver.delete()
+    messages.success(request, f"Driver {name} removed.")
+    return redirect("driver_list")

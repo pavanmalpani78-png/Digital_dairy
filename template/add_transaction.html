@@ -1,150 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Add Payment</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+{% block title %}Add Payment | Milk Khata Digital Dairy{% endblock %}
 
-  <style>
-    body {
-      background: #f5f7fb;
-    }
-
-    .wrap {
-      max-width: 980px;
-      margin: 28px auto;
-    }
-
-    .card-pro {
-      border: 0;
-      border-radius: 18px;
-      box-shadow: 0 12px 30px rgba(20, 40, 80, 0.08);
-      overflow: hidden;
-    }
-
-    .topbar {
-      background: linear-gradient(135deg, #0d6efd, #2193b0);
-      color: white;
-      padding: 22px 24px;
-    }
-
-    .topbar h3 {
-      margin: 0;
-      font-weight: 800;
-      letter-spacing: 0.2px;
-    }
-
-    .topbar p {
-      margin: 6px 0 0;
-      opacity: 0.9;
-    }
-
-    .btn-pill {
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-weight: 600;
-    }
-
-    .hint {
-      background: #eef2ff;
-      border: 1px solid #dbeafe;
-      color: #1d4ed8;
-      border-radius: 14px;
-      padding: 12px 14px;
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    .form-control,
-    select {
-      border-radius: 12px !important;
-    }
-
-    label {
-      font-weight: 700;
-      color: #111827;
-    }
-  </style>
-</head>
-
-<body>
-  {% include "navbar.html" %}
-
-  <div class="wrap">
-    <div class="card card-pro">
-      <div class="topbar d-flex justify-content-between align-items-start gap-2">
+{% block content %}
+<div class="glass-card overflow-hidden" style="max-width: 900px; margin: 0 auto;">
+    <div class="bg-primary p-4 text-white d-flex justify-content-between align-items-center">
         <div>
-          <h3>Add Payment</h3>
-          <p>Create paid / unpaid entry for customer</p>
+            <h3 class="fw-800 mb-1 text-white">Record Payment</h3>
+            <p class="mb-0 opacity-75 small">Create a paid or unpaid transaction for a customer</p>
         </div>
-        <a href="{% url 'transaction_page' %}" class="btn btn-light btn-pill">Back to Payments</a>
-      </div>
+        <a href="{% url 'transaction_page' %}" class="btn btn-light rounded-pill px-4 fw-600">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
+    </div>
 
-      <div class="p-3 p-md-4">
-        <div class="hint mb-4">
-          Tip: Select customer + choose <b>MILK</b> to auto-fill qty & rate from latest milk order.
+    <div class="p-4 p-md-5">
+        <div class="alert alert-info border-0 rounded-4 py-3 small bg-info-subtle text-info mb-4">
+            <i class="bi bi-lightbulb-fill me-2"></i> <strong>Tip:</strong> Select a customer and choose <b>MILK</b> to auto-fill details from their latest delivery.
         </div>
 
         <form method="POST">
-          {% csrf_token %}
+            {% csrf_token %}
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Customer</label>
+                    {{ form.customer }}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Product Type</label>
+                    {{ form.product_type }}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Payment Status</label>
+                    {{ form.payment_status }}
+                </div>
 
-          <div class="row g-3">
-            <div class="col-md-4">
-              <label class="form-label">Customer</label>
-              {{ form.customer }}
+                <div class="col-md-4">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Quantity</label>
+                    {{ form.qty }}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Unit</label>
+                    {{ form.unit }}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Rate (₹)</label>
+                    {{ form.rate }}
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Note (Optional)</label>
+                    {{ form.note }}
+                </div>
+                
+                <div class="col-12 mt-5">
+                    <div class="d-flex gap-3">
+                        <button class="btn-premium px-5 py-3 justify-content-center flex-grow-1">
+                            Save Transaction <i class="bi bi-check-lg ms-2"></i>
+                        </button>
+                        <a href="{% url 'transaction_page' %}" class="btn btn-outline-secondary border-2 rounded-4 px-4 py-3 fw-600">Cancel</a>
+                    </div>
+                </div>
             </div>
-
-            <div class="col-md-4">
-              <label class="form-label">Product</label>
-              {{ form.product_type }}
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label">Payment Status</label>
-              {{ form.payment_status }}
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label">Quantity</label>
-              {{ form.qty }}
-              <div class="form-text">Example: 2 (packets), 1.5 (kg), 5 (liters)</div>
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label">Unit</label>
-              {{ form.unit }}
-            </div>
-
-            <div class="col-md-4">
-              <label class="form-label">Rate (₹)</label>
-              {{ form.rate }}
-            </div>
-
-            <div class="col-12">
-              <label class="form-label">Note</label>
-              {{ form.note }}
-            </div>
-
-            <div class="col-12 d-flex gap-2">
-              <button class="btn btn-primary btn-pill px-4">Save Payment</button>
-              <a href="{% url 'transaction_page' %}" class="btn btn-outline-secondary btn-pill px-4">Cancel</a>
-            </div>
-          </div>
-
         </form>
-
-      </div>
     </div>
+</div>
 
-    <div class="text-center text-muted small mt-3">
-      © 2026 Milk Khata • Payments
-    </div>
-  </div>
-
-  <script>
-    // Django auto IDs:
+{% block extra_js %}
+<script>
     const customerSelect = document.getElementById("id_customer");
     const productSelect = document.getElementById("id_product_type");
     const qtyInput = document.getElementById("id_qty");
@@ -152,30 +75,39 @@
     const rateInput = document.getElementById("id_rate");
 
     async function autofillMilk() {
-      const cid = customerSelect.value;
-      const prod = productSelect.value;
+        const cid = customerSelect.value;
+        const prod = productSelect.value;
+        if (!cid || prod !== "MILK") return;
 
-      // Only autofill for MILK
-      if (!cid || prod !== "MILK") return;
-
-      const res = await fetch(`/api/last-milk/?customer_id=${cid}`);
-      const data = await res.json();
-
-      if (data.ok) {
-        qtyInput.value = data.liters ?? "";
-        unitSelect.value = "L";     // milk = liters
-        rateInput.value = data.rate ?? "";
-      }
+        const res = await fetch(`/api/last-milk/?customer_id=${cid}`);
+        const data = await res.json();
+        if (data.ok) {
+            qtyInput.value = data.liters ?? "";
+            unitSelect.value = "L";
+            rateInput.value = data.rate ?? "";
+        }
     }
 
     customerSelect.addEventListener("change", autofillMilk);
     productSelect.addEventListener("change", () => {
-      // If not milk, don’t force liters
-      if (productSelect.value !== "MILK") return;
-      autofillMilk();
+        if (productSelect.value === "MILK") autofillMilk();
     });
-  </script>
+</script>
+{% endblock %}
 
-</body>
-
+<style>
+    .tracking-wider { letter-spacing: 0.05em; }
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    input, textarea, select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem !important;
+        border: none !important;
+        background-color: #f8fafc !important;
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+</style>
+{% endblock %}
 </html>

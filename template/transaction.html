@@ -1,202 +1,173 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %}
+{% load static %}
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Payments</title>
+{% block title %}Payments & Transactions | Milk Khata Digital Dairy{% endblock %}
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <style>
-    body {
-      background: #f5f7fb;
-    }
-
-    .page-wrap {
-      max-width: 1100px;
-      margin: 28px auto;
-    }
-
-    .card-pro {
-      border: 0;
-      border-radius: 18px;
-      box-shadow: 0 12px 30px rgba(20, 40, 80, 0.08);
-      overflow: hidden;
-    }
-
-    .topbar {
-      background: linear-gradient(135deg, #0d6efd, #2193b0);
-      color: white;
-      padding: 22px 24px;
-    }
-
-    .topbar h3 {
-      margin: 0;
-      font-weight: 800;
-      letter-spacing: 0.2px;
-    }
-
-    .topbar p {
-      margin: 6px 0 0;
-      opacity: 0.9;
-    }
-
-    .btn-pill {
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-weight: 600;
-    }
-
-    .searchbox {
-      border-radius: 12px;
-      padding: 11px 12px;
-      border: 1px solid #e5e7eb;
-    }
-
-    .table thead th {
-      background: #0b1220 !important;
-      color: #fff !important;
-      border-color: #0b1220 !important;
-    }
-
-    .table tbody tr:hover {
-      background: #f2f6ff;
-      transition: 0.2s;
-    }
-
-    .badge-soft {
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-weight: 700;
-      font-size: 12px;
-      display: inline-block;
-    }
-
-    .badge-paid {
-      background: #ecfdf5;
-      color: #047857;
-      border: 1px solid #a7f3d0;
-    }
-
-    .badge-unpaid {
-      background: #fef2f2;
-      color: #b91c1c;
-      border: 1px solid #fecaca;
-    }
-
-    .muted {
-      color: #6b7280;
-    }
-  </style>
-</head>
-
-<body>
-
-  {% include 'navbar.html' %}
-
-  <div class="page-wrap">
-
-    <div class="card card-pro">
-      <!-- Header -->
-      <div
-        class="topbar d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+{% block content %}
+<div class="glass-card overflow-hidden">
+    <!-- Header -->
+    <div class="bg-primary p-4 text-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
         <div>
-          <h3>Payments</h3>
-          <p>Track paid and unpaid records</p>
+            <h3 class="fw-800 mb-1 text-white">Payments</h3>
+            <p class="mb-0 opacity-75 small">Track customer payments and collection status</p>
         </div>
+        <a href="{% url 'add_transaction' %}" class="btn btn-light rounded-pill px-4 fw-600">
+            <i class="bi bi-plus-circle-fill me-2"></i> Add Payment
+        </a>
+    </div>
 
-        <div class="d-flex gap-2">
-          <a href="{% url 'add_transaction' %}" class="btn btn-light btn-pill">
-            Add Payment
-          </a>
-        </div>
-      </div>
-
-      <!-- Content -->
-      <div class="p-3 p-md-4">
-
-        <div
-          class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
-          <div class="muted">
-            Total Records:
-            <span class="badge-soft" style="background:#eef2ff;color:#1d4ed8;border:1px solid #dbeafe;">
-              {{ transactions|length }}
-            </span>
-          </div>
-
-          <input id="searchInput" type="text" class="form-control searchbox"
-            placeholder="Search by customer / product / status...">
+    <!-- Content -->
+    <div class="p-4">
+        <div class="row align-items-center g-3 mb-4">
+            <div class="col-md-6">
+                <div class="muted small text-uppercase tracking-wider fw-700">Total Transactions</div>
+                <div class="h4 fw-800 mb-0"><span class="badge-soft">{{ transactions|length }}</span> Records Found</div>
+            </div>
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0 rounded-start-4 px-3 text-muted">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input id="searchInput" type="text" class="form-control bg-light border-0 py-2 rounded-end-4" placeholder="Search by name or amount...">
+                </div>
+            </div>
         </div>
 
         <div class="table-responsive">
-          <table class="table table-bordered align-middle mb-0" id="paymentTable">
-            <thead>
-              <tr>
-                <th style="width: 12%;">Date</th>
-                <th style="width: 18%;">Customer</th>
-                <th style="width: 12%;">Product</th>
-                <th style="width: 10%;">Qty</th>
-                <th style="width: 10%;">Unit</th>
-                <th style="width: 12%;">Rate</th>
-                <th style="width: 14%;">Total</th>
-                <th style="width: 12%;">Status</th>
-              </tr>
-            </thead>
+            <table class="table table-hover align-middle mb-0" id="transactionTable">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 rounded-start-3 px-4 py-3 small fw-700 text-muted text-uppercase tracking-wider">Customer</th>
+                        <th class="border-0 py-3 small fw-700 text-muted text-uppercase tracking-wider">Date</th>
+                        <th class="border-0 py-3 small fw-700 text-muted text-uppercase tracking-wider text-center">Total (₹)</th>
+                        <th class="border-0 py-3 small fw-700 text-muted text-uppercase tracking-wider">Note</th>
+                        <th class="border-0 py-3 small fw-700 text-muted text-uppercase tracking-wider text-center">Status</th>
+                        <th class="border-0 rounded-end-3 py-3 small fw-700 text-muted text-uppercase tracking-wider text-end px-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    {% for t in transactions %}
+                    <tr class="border-bottom border-light">
+                        {# Customer + product info #}
+                        <td class="px-4 py-3">
+                            <div class="fw-700">{{ t.customer.name }}</div>
+                            <div class="text-muted small">{{ t.product_type }} · {{ t.qty }} {{ t.unit }}</div>
+                        </td>
 
-            <tbody>
-              {% for t in transactions %}
-              <tr>
-                <td>{{ t.date }}</td>
-                <td class="fw-semibold">{{ t.customer.name }}</td>
-                <td>{{ t.get_product_type_display|default:t.product_type }}</td>
-                <td>{{ t.qty }}</td>
-                <td>{{ t.unit }}</td>
-                <td>₹{{ t.rate }}</td>
-                <td class="fw-bold">₹{{ t.amount }}</td>
-                <td>
-                  {% if t.payment_status == "PAID" %}
-                  <span class="badge-soft badge-paid">PAID</span>
-                  {% else %}
-                  <span class="badge-soft badge-unpaid">UNPAID</span>
-                  {% endif %}
-                </td>
-              </tr>
-              {% empty %}
-              <tr>
-                <td colspan="8" class="text-center muted py-4">
-                  No payment records found. Click <b>Add Payment</b> to create the first one.
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
+                        {# Date #}
+                        <td class="py-3 text-muted small">{{ t.date }}</td>
 
-          </table>
+                        {# Amount #}
+                        <td class="py-3 text-center fw-800 text-success">₹{{ t.amount }}</td>
+
+                        {# Note — show "Empty" if blank #}
+                        <td class="py-3 small" style="max-width: 180px;">
+                            {% if t.note %}
+                                <span class="text-muted">{{ t.note }}</span>
+                            {% else %}
+                                <span class="text-muted fst-italic opacity-50">Empty</span>
+                            {% endif %}
+                        </td>
+
+                        {# Status badge #}
+                        <td class="py-3 text-center">
+                            {% if t.payment_status == 'PAID' %}
+                                <span class="badge bg-success-subtle text-success border-0 rounded-pill px-3 py-2 small fw-700">
+                                    <i class="bi bi-check-circle-fill me-1"></i>PAID
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger border-0 rounded-pill px-3 py-2 small fw-700">
+                                    <i class="bi bi-exclamation-circle-fill me-1"></i>UNPAID
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        {# Actions: toggle paid/unpaid + amount info panel #}
+                        <td class="py-3 text-end px-4">
+                            <div class="d-flex gap-2 justify-content-end align-items-center flex-wrap">
+                                {# Amount Breakdown toggle only #}
+                                <button class="btn btn-sm btn-outline-primary border-2 rounded-pill px-3 fw-600 py-1"
+                                    onclick="toggleAmountBox({{ t.id }})" type="button">
+                                    <i class="bi bi-cash-coin me-1"></i>₹ Info
+                                </button>
+                            </div>
+
+                            {# Collapsible amount panel #}
+                            <div id="amtBox-{{ t.id }}" class="mt-2 p-3 rounded-3 text-start d-none"
+                                 style="background:#f0fdf4; border:1px solid #bbf7d0; font-size:0.85rem; min-width:180px;">
+                                <div class="mb-1">
+                                    <span class="text-muted">Total Bill:</span>
+                                    <strong class="float-end">₹{{ t.amount }}</strong>
+                                </div>
+                                {% if t.payment_status == 'PAID' %}
+                                    <div class="mb-1">
+                                        <span class="text-muted">Amount Paid:</span>
+                                        <strong class="float-end text-success">₹{{ t.amount }}</strong>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted">Remaining:</span>
+                                        <strong class="float-end text-success">₹0</strong>
+                                    </div>
+                                    <div class="mt-2 text-success fw-700 small">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Fully Settled ✓
+                                    </div>
+                                {% else %}
+                                    <div class="mb-1">
+                                        <span class="text-muted">Amount Paid:</span>
+                                        <strong class="float-end text-success">₹0</strong>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted">Remaining:</span>
+                                        <strong class="float-end text-danger">₹{{ t.amount }}</strong>
+                                    </div>
+                                    <div class="mt-2 text-danger fw-700 small">
+                                        <i class="bi bi-exclamation-circle-fill me-1"></i>Payment Pending
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-wallet2 display-4 d-block mb-3 opacity-25"></i>
+                            No transaction records yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-
-      </div>
     </div>
+</div>
 
-    <div class="text-center muted small mt-3">
-      © 2026 Milk Khata • Payments
-    </div>
-
-  </div>
-
-  <script>
+{% block extra_js %}
+<script>
     const searchInput = document.getElementById("searchInput");
-    const table = document.getElementById("paymentTable");
+    const table = document.getElementById("transactionTable");
     const rows = table.querySelectorAll("tbody tr");
 
     searchInput.addEventListener("keyup", function () {
-      const q = this.value.toLowerCase().trim();
-      rows.forEach(row => {
-        const text = row.innerText.toLowerCase();
-        row.style.display = text.includes(q) ? "" : "none";
-      });
+        const q = this.value.toLowerCase().trim();
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(q) ? "" : "none";
+        });
     });
-  </script>
 
-</body>
+    function toggleAmountBox(id) {
+        const box = document.getElementById("amtBox-" + id);
+        box.classList.toggle("d-none");
+    }
+</script>
+{% endblock %}
 
-</html>
+<style>
+    .tracking-wider { letter-spacing: 0.05em; }
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .fw-600 { font-weight: 600; }
+    .bg-success-subtle { background-color: #f0fdf4; }
+    .bg-danger-subtle  { background-color: #fef2f2; }
+</style>
+{% endblock %}

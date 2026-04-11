@@ -1,466 +1,128 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %}
+{% load static %}
 
-<head>
-  <meta charset="UTF-8">
-  <title>Dairy Orders</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+{% block title %}Milk Orders | Milk Khata Digital Dairy{% endblock %}
 
-  <style>
-    body {
-      background: #f5f7fb;
-    }
-
-    .wrap {
-      max-width: 1200px;
-      margin: 26px auto;
-    }
-
-    .cardx {
-      border: 0;
-      border-radius: 18px;
-      box-shadow: 0 12px 30px rgba(20, 40, 80, 0.08);
-      overflow: hidden;
-    }
-
-    .topbar {
-      background: linear-gradient(135deg, #0d6efd, #2193b0);
-      color: #fff;
-      padding: 22px 24px;
-    }
-
-    .topbar h3 {
-      margin: 0;
-      font-weight: 800;
-      letter-spacing: .2px;
-    }
-
-    .topbar .sub {
-      opacity: .85;
-      font-size: 14px;
-    }
-
-    .btn-pill {
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-weight: 600;
-    }
-
-    .kpi {
-      border-radius: 16px;
-      border: 1px solid #eef2ff;
-      background: #ffffff;
-      padding: 14px 16px;
-      height: 100%;
-    }
-
-    .kpi .label {
-      color: #6b7280;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    .kpi .value {
-      font-size: 20px;
-      font-weight: 800;
-      margin-top: 4px;
-    }
-
-    .table thead th {
-      background: #0b1220 !important;
-      color: #fff !important;
-      border-color: #0b1220 !important;
-      white-space: nowrap;
-    }
-
-    .table tbody tr:hover {
-      background: #f2f6ff;
-      transition: 0.15s;
-    }
-
-    .muted {
-      color: #6b7280;
-    }
-
-    .badge-soft {
-      background: rgba(13, 110, 253, 0.12);
-      color: #0d6efd;
-      border: 1px solid rgba(13, 110, 253, 0.18);
-      border-radius: 999px;
-      padding: 6px 12px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    /* keep add form nice */
-    .form-control,
-    .form-select {
-      border-radius: 12px;
-      padding: 12px;
-    }
-
-    .small-help {
-      font-size: 12px;
-      color: #6b7280;
-      margin-top: 6px;
-    }
-  </style>
-</head>
-
-<body>
-
-  {% include "navbar.html" %}
-
-  <div class="wrap">
-
-    <!-- HEADER -->
-    <div class="card cardx mb-4">
-      <div
-        class="topbar d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+{% block content %}
+<div class="glass-card overflow-hidden">
+    <!-- Header -->
+    <div class="bg-primary p-4 text-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
         <div>
-          <h3>Dairy Orders</h3>
-          <div class="sub">Add orders + view date-wise orders (Milk, Ghee, Paneer, Curd, Butter)</div>
+            <h3 class="fw-800 mb-1 text-white">Milk Orders</h3>
+            <p class="mb-0 opacity-75 small">Record and track daily milk deliveries</p>
         </div>
-
-      </div>
-
-
-
-      <!-- ADD ORDER CARD -->
-      <div class="card cardx mb-4">
-        <div class="p-3 p-md-4">
-          <h4 class="fw-bold mb-2">➕ Add Dairy Order</h4>
-          <div class="muted mb-3">This order will be added for the selected date below.</div>
-
-
-
-          <form method="POST" action="{% url 'milk_order' %}">
-            {% csrf_token %}
-
-            <div class="row g-3">
-
-
-              <!-- ✅ ORDER DATE -->
-              <div class="col-md-3">
-                <label class="form-label fw-semibold">Order Date</label>
-                <input type="date" name="date" class="form-control" value="{{ selected_date }}" required>
-                <div class="small-help">Change date if you are entering old orders.</div>
-              </div>
-
-              <div class="col-md-3">
-                <label class="form-label fw-semibold">Customer</label>
-                <select name="customer" class="form-select" required>
-                  <option value="">Select</option>
-                  {% for c in customers %}
-                  <option value="{{ c.id }}">{{ c.name }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-
-              <div class="col-md-3">
-                <label class="form-label fw-semibold">Product</label>
-                <select name="product_type" id="productType" class="form-select" required>
-                  <option value="MILK">Milk</option>
-                  <option value="GHEE">Ghee</option>
-                  <option value="PANEER">Paneer</option>
-                  <option value="CURD">Curd</option>
-                  <option value="BUTTER">Butter</option>
-                </select>
-              </div>
-
-              <!-- MILK BOX -->
-              <div id="milkBox" class="row g-3 mt-0">
-
-                <div class="col-md-3">
-                  <label class="form-label fw-semibold">Brand</label>
-                  <select name="brand" id="brand" class="form-select">
-                    <option value="">-- None --</option>
-                    <option value="AMUL">Amul</option>
-                    <option value="VIKAS">Vikas</option>
-                    <option value="SARASWATI">Saraswati</option>
-                    <option value="AMAR">Amar</option>
-                  </select>
-                </div>
-
-                <div class="col-md-3">
-                  <label class="form-label fw-semibold">Milk Type</label>
-                  <select name="milk_type" id="milkType" class="form-select">
-                    <option value="">-- None --</option>
-                    <option value="COW">Cow Milk</option>
-                    <option value="BUFFALO">Buffalo Milk</option>
-                  </select>
-                </div>
-
-                <div class="col-md-2">
-                  <label class="form-label fw-semibold">Pack Size</label>
-                  <select name="pack_size" id="packSize" class="form-select" required>
-                    <option value="">-- Select --</option>
-                    <option value="0.5">0.5 L</option>
-                    <option value="1.0">1 L</option>
-                    <option value="2.0">2 L</option>
-                    <option value="5.0">5 L</option>
-                  </select>
-                </div>
-
-                <div class="col-md-2">
-                  <label class="form-label fw-semibold">Packets</label>
-                  <input type="number" name="packets" id="packets" class="form-control" min="1" value="1">
-                </div>
-
-                <div class="col-md-2">
-                  <label class="form-label fw-semibold">Rate / Packet</label>
-                  <input type="text" id="milkRate" class="form-control" readonly>
-                </div>
-
-                <div class="col-md-2">
-                  <label class="form-label fw-semibold">Total</label>
-                  <input type="text" id="milkTotal" class="form-control" readonly>
-                </div>
-
-
-
-                <!-- OTHER BOX -->
-                <div id="otherBox" class="row g-3 mt-0" style="display:none;">
-                  <div class="col-md-3">
-                    <label class="form-label fw-semibold">Quantity</label>
-                    <input type="number" step="0.1" name="quantity" id="qty" class="form-control" value="1">
-                  </div>
-
-                  <div class="col-md-2">
-                    <label class="form-label fw-semibold">Unit</label>
-                    <select name="unit" id="unit" class="form-select">
-                      <option value="KG">KG</option>
-                      <option value="PCS">PCS</option>
-                      <option value="L">L</option>
-                    </select>
-                  </div>
-
-                  <div class="col-md-3">
-                    <label class="form-label fw-semibold">Rate</label>
-                    <input type="number" step="0.1" name="rate" id="rate" class="form-control" value="0">
-                  </div>
-
-                  <div class="col-md-2">
-                    <label class="form-label fw-semibold">Total</label>
-                    <input type="text" id="otherTotal" class="form-control" readonly>
-                  </div>
-
-                  <div class="col-md-2 d-flex align-items-end">
-                    <small class="muted" id="hint">Enter qty & rate</small>
-                  </div>
-                </div>
-
-                <div class="col-md-12">
-                  <button class="btn btn-success btn-pill">Add Order</button>
-                </div>
-
-              </div>
-          </form>
+        <div class="d-flex gap-2">
+            <a href="{% url 'add_milk_order' %}?date={{ selected_date }}" class="btn btn-light rounded-pill px-4 fw-600 shadow-sm">
+                <i class="bi bi-plus-circle-fill me-1"></i> New Order
+            </a>
         </div>
-      </div>
-
-
-
-
-      <div class="p-3 p-md-4">
-        <!-- DATE FILTER -->
-        <form method="GET" class="d-flex flex-column flex-md-row gap-2 align-items-md-end">
-          <div style="max-width:240px;">
-            <label class="form-label fw-semibold mb-1">View Orders by Date</label>
-            <input type="date" name="date" class="form-control" value="{{ selected_date }}">
-          </div>
-          <div class="d-flex gap-2">
-            <button class="btn btn-primary btn-pill">View</button>
-            <a class="btn btn-outline-secondary btn-pill" href="{% url 'milk_order' %}">Reset</a>
-          </div>
-        </form>
-
-        <div class="row g-3 mt-2">
-          <div class="col-md-4">
-            <div class="kpi">
-              <div class="label">Orders On Date</div>
-              <div class="value">{{ orders|length }}</div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="kpi">
-              <div class="label">Tip</div>
-              <div class="muted mt-1">Add Order date from below form (editable).</div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="kpi">
-              <div class="label">Actions</div>
-              <div class="muted mt-1">Edit / Delete from the table.</div>
-            </div>
-          </div>
-        </div>
-
-      </div>
     </div>
 
-
-    <!-- ORDERS TABLE -->
-    <div class="card cardx">
-      <div class="p-3 p-md-4">
-        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-          <h4 class="fw-bold mb-0">📋 Orders ({{ selected_date }})</h4>
-          <div class="muted">Total Rows: <b>{{ orders|length }}</b></div>
+    <!-- Content -->
+    <div class="p-4">
+        <!-- Date Stats & Search -->
+        <div class="row align-items-center g-3 mb-4">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0 rounded-start-4 px-3 text-muted">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input id="searchInput" type="text" class="form-control bg-light border-0 py-2 rounded-end-4" placeholder="Search by customer name...">
+                </div>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div class="d-flex align-items-center justify-content-md-end gap-3">
+                    <div class="text-end">
+                        <small class="text-muted tracking-wider text-uppercase fw-700">Total Orders</small>
+                        <div class="fw-800 lead mb-0">{{ orders|length }}</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="table-responsive">
-          <table class="table table-bordered align-middle mb-0">
-            <thead class="table-dark">
-              <tr>
-                <th>Date</th>
-                <th>Customer</th>
-                <th>Product</th>
-                <th>Brand</th>
-                <th>Milk Type</th>
-                <th>Pack</th>
-                <th>Packets</th>
-                <th>Qty</th>
-                <th>Unit</th>
-                <th>Rate</th>
-                <th>Total Liters</th>
-                <th>Total</th>
-
-              </tr>
-            </thead>
-
-            <tbody>
-              {% for o in orders %}
-              <tr>
-                <td>{{ o.date }}</td>
-                <td class="fw-semibold">{{ o.customer.name }}</td>
-                <td>{{ o.get_product_type_display }}</td>
-
-                <td>{{ o.get_brand_display|default:"-" }}</td>
-                <td>{{ o.get_milk_type_display|default:"-" }}</td>
-
-                <td>{{ o.pack_size|default:"-" }}</td>
-                <td>{{ o.packets|default:"-" }}</td>
-
-                <td>{{ o.quantity|default:"-" }}</td>
-                <td>{{ o.unit|default:"-" }}</td>
-
-                <td>{{ o.rate }}</td>
-                <td>{{ o.total_liters }}</td>
-                <td><b>{{ o.total }}</b></td>
-
-                <!-- <td class="text-nowrap">
-                  <a href="{% url 'edit_order' o.id %}" class="btn btn-warning btn-sm">Edit</a>
-                  <a href="{% url 'delete_order' o.id %}" class="btn btn-danger btn-sm"
-                    onclick="return confirm('Delete this order?')">Delete</a>
-                </td> -->
-              </tr>
-              {% empty %}
-              <tr>
-                <td colspan="13" class="text-center muted py-4">No orders for this date.</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-
-          </table>
+            <table class="table table-hover align-middle mb-0" id="orderTable">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 rounded-start-3 px-4 py-3 small fw-700 text-muted text-uppercase tracking-wider">Customer</th>
+                        <th class="border-0 py-3 small fw-700 text-muted text-uppercase tracking-wider">Date</th>
+                        <th class="border-0 py-3 small fw-700 text-muted text-uppercase tracking-wider">Product / Qty</th>
+                        <th class="border-0 py-3 small fw-700 text-muted text-uppercase tracking-wider">Total (₹)</th>
+                        <th class="border-0 rounded-end-3 py-3 small fw-700 text-muted text-uppercase tracking-wider text-end px-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    {% for o in orders %}
+                    <tr class="border-bottom border-light">
+                        <td class="px-4 py-3 fw-700">{{ o.customer.name }}</td>
+                        <td class="py-3 text-muted">{{ o.date }}</td>
+                        <td class="py-3">
+                            {% if o.product_type == 'MILK' %}
+                                <span class="fw-600 text-primary">{{ o.total_liters }} L</span>
+                                <span class="text-muted small ms-1">Milk</span>
+                            {% else %}
+                                <span class="fw-600 text-dark">{{ o.quantity }} {{ o.unit }}</span>
+                                <span class="badge-soft small ms-1">{{ o.product_type }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 fw-800 text-dark">₹{{ o.total }}</td>
+                        <td class="py-3 text-end px-4">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a href="{% url 'edit_order' o.id %}" class="btn btn-sm btn-outline-primary border-2 rounded-pill px-3 fw-600">Edit</a>
+                                <a href="{% url 'delete_order' o.id %}" class="btn btn-sm btn-outline-danger border-2 rounded-pill px-3 fw-600" onclick="return confirm('Delete order: {{ o.customer.name }} - {{ o.date }} ?')">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="bi bi-cart-x display-4 d-block mb-3 opacity-25"></i>
+                            No orders found. Add your first delivery above.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-      </div>
     </div>
+</div>
 
-  </div>
+{% block extra_js %}
+<script>
+    const searchInput = document.getElementById("searchInput");
+    const table = document.getElementById("orderTable");
+    const rows = table.querySelectorAll("tbody tr");
 
-  <script>
-    const productType = document.getElementById("productType");
-    const milkBox = document.getElementById("milkBox");
-    const otherBox = document.getElementById("otherBox");
+    searchInput.addEventListener("keyup", function () {
+        const q = this.value.toLowerCase().trim();
+        rows.forEach(row => {
+            const customerName = row.cells[0].innerText.toLowerCase();
+            row.style.display = customerName.includes(q) ? "" : "none";
+        });
+    });
 
-    const brand = document.getElementById("brand");
-    const milkType = document.getElementById("milkType");
-    const packSize = document.getElementById("packSize");
-    const packets = document.getElementById("packets");
-    const milkRate = document.getElementById("milkRate");
-    const milkTotal = document.getElementById("milkTotal");
+    function toggleOrderFields() {
+        const productType = document.getElementById('id_product_type').value;
+        const milkFields = document.querySelectorAll('.milk-fields');
+        const otherFields = document.querySelectorAll('.other-fields');
 
-    const qty = document.getElementById("qty");
-    const unit = document.getElementById("unit");
-    const rate = document.getElementById("rate");
-    const otherTotal = document.getElementById("otherTotal");
-
-    const BASE_HALF = { AMUL: 27, VIKAS: 26, SARASWATI: 27, AMAR: 26 };
-
-    function setEnabled(container, enabled) {
-      container.querySelectorAll("input, select, textarea").forEach(el => {
-        el.disabled = !enabled;
-      });
+        if (productType === 'MILK') {
+            milkFields.forEach(f => f.classList.remove('d-none'));
+            otherFields.forEach(f => f.classList.add('d-none'));
+        } else {
+            milkFields.forEach(f => f.classList.add('d-none'));
+            otherFields.forEach(f => f.classList.remove('d-none'));
+        }
     }
+</script>
+{% endblock %}
 
-    function calcMilk() {
-      const b = brand.value;
-      const size = parseFloat(packSize.value || "0");
-      const pkts = parseInt(packets.value || "0");
-
-      if (!size || !pkts) {
-        milkRate.value = "";
-        milkTotal.value = "";
-        return;
-      }
-
-      const base = BASE_HALF[b] || 27;
-      const factor = size / 0.5;
-      const ratePerPacket = base * factor;
-      const total = pkts * ratePerPacket;
-
-      milkRate.value = ratePerPacket.toFixed(2);
-      milkTotal.value = total.toFixed(2);
-    }
-
-    function calcOther() {
-      const q = parseFloat(qty.value || "0");
-      const r = parseFloat(rate.value || "0");
-      otherTotal.value = (q * r).toFixed(2);
-    }
-
-    function toggleBoxes() {
-      if (productType.value === "MILK") {
-        milkBox.style.display = "flex";
-        otherBox.style.display = "none";
-
-        setEnabled(milkBox, true);
-        setEnabled(otherBox, false);
-
-        packSize.required = true;
-        packets.required = true;
-
-        calcMilk();
-      } else {
-        milkBox.style.display = "none";
-        otherBox.style.display = "flex";
-
-        setEnabled(milkBox, false);
-        setEnabled(otherBox, true);
-
-        packSize.required = false;
-        packets.required = false;
-
-        qty.required = true;
-        rate.required = true;
-
-        calcOther();
-      }
-    }
-
-    productType.addEventListener("change", toggleBoxes);
-
-    brand.addEventListener("change", calcMilk);
-    packSize.addEventListener("change", calcMilk);
-    packets.addEventListener("input", calcMilk);
-
-    qty.addEventListener("input", calcOther);
-    rate.addEventListener("input", calcOther);
-
-    // init
-    toggleBoxes();
-  </script>
-
-</body>
-
-</html>
+<style>
+    .tracking-wider { letter-spacing: 0.05em; }
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .fw-600 { font-weight: 600; }
+    .rounded-start-4 { border-top-left-radius: 1rem !important; border-bottom-left-radius: 1rem !important; }
+    .rounded-end-4 { border-top-right-radius: 1rem !important; border-bottom-right-radius: 1rem !important; }
+</style>
+{% endblock %}

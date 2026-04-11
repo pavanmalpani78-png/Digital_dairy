@@ -1,71 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Edit Order</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+{% block title %}Edit Order | Milk Khata Digital Dairy{% endblock %}
 
-<body>
-
-    {% include "navbar.html" %}
-
-    <div class="container mt-4" style="max-width:900px;">
-        <div class="card p-4">
-            <h4 class="fw-bold mb-3">✏️ Edit Order</h4>
-
-            <form method="POST">
-                {% csrf_token %}
-
-                <div class="row g-3">
-
-                    <div class="col-md-4">
-                        <label class="form-label">Customer</label>
-                        <select name="customer" class="form-select" required>
-                            {% for c in customers %}
-                            <option value="{{ c.id }}" {% if order.customer_id==c.id %}selected{% endif %}>{{ c.name }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Order Date</label>
-                        <input type="date" name="date" class="form-control" value="{{ order.date|date:'Y-m-d' }}"
-                            required>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">Product</label>
-                        <select name="product_type" class="form-select" required>
-                            <option value="MILK" {% if order.product_type=="MILK" %}selected{% endif %}>Milk</option>
-                            <option value="GHEE" {% if order.product_type=="GHEE" %}selected{% endif %}>Ghee</option>
-                            <option value="PANEER" {% if order.product_type=="PANEER" %}selected{% endif %}>Paneer
-                            </option>
-                            <option value="CURD" {% if order.product_type=="CURD" %}selected{% endif %}>Curd</option>
-                            <option value="BUTTER" {% if order.product_type=="BUTTER" %}selected{% endif %}>Butter
-                            </option>
-                        </select>
-                    </div>
-
-                    <div class="col-12">
-                        <div class="alert alert-info mb-0">
-                            Edit fields and click <b>Update</b>. Totals will auto-calculate in model save().
-                        </div>
-                    </div>
-
-                    <div class="col-12 d-flex gap-2 mt-2">
-                        <button class="btn btn-success">Update</button>
-                        <a class="btn btn-secondary"
-                            href="{% url 'milk_order' %}?date={{ order.date|date:'Y-m-d' }}">Back</a>
-                    </div>
-
-                </div>
-            </form>
+{% block content %}
+<div class="glass-card overflow-hidden" style="max-width: 800px; margin: 0 auto;">
+    <div class="bg-primary p-4 text-white d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="fw-800 mb-1 text-white">Edit Order</h3>
+            <p class="mb-0 opacity-75 small">Modify the details of this delivery record</p>
         </div>
+        <a href="{% url 'milk_order' %}?date={{ order.date|date:'Y-m-d' }}" class="btn btn-light rounded-pill px-4 fw-600">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
     </div>
 
-</body>
+    <div class="p-4 p-md-5">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Customer</label>
+                    <select name="customer" class="form-select bg-light border-0 py-3 rounded-4" required>
+                        {% for c in customers %}
+                        <option value="{{ c.id }}" {% if order.customer_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-</html>
+                <div class="col-md-6">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Order Date</label>
+                    <input type="date" name="date" class="form-control bg-light border-0 py-3 rounded-4" value="{{ order.date|date:'Y-m-d' }}" required>
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Product Type</label>
+                    <select name="product_type" class="form-select bg-light border-0 py-3 rounded-4" required>
+                        <option value="MILK" {% if order.product_type == "MILK" %}selected{% endif %}>Milk</option>
+                        <option value="GHEE" {% if order.product_type == "GHEE" %}selected{% endif %}>Ghee</option>
+                        <option value="PANEER" {% if order.product_type == "PANEER" %}selected{% endif %}>Paneer</option>
+                        <option value="CURD" {% if order.product_type == "CURD" %}selected{% endif %}>Curd</option>
+                        <option value="BUTTER" {% if order.product_type == "BUTTER" %}selected{% endif %}>Butter</option>
+                    </select>
+                </div>
+                
+                <div class="col-12 mt-5">
+                    <div class="d-flex gap-3">
+                        <button class="btn-premium px-5 py-3 justify-content-center flex-grow-1">
+                            Update Order <i class="bi bi-check2-circle ms-2"></i>
+                        </button>
+                        <a href="{% url 'milk_order' %}?date={{ order.date|date:'Y-m-d' }}" class="btn btn-outline-secondary border-2 rounded-4 px-4 py-3 fw-600">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .tracking-wider { letter-spacing: 0.05em; }
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    input, select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem !important;
+        border: none !important;
+        background-color: #f8fafc !important;
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+</style>
+{% endblock %}

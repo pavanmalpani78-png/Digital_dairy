@@ -1,177 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Digital Dairy | Dashboard</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <style>
-        body {
-            background: #f5f7fb;
-        }
-
-        .wrap {
-            max-width: 1150px;
-            margin: 0 auto;
-            padding: 28px 16px 40px;
-        }
-
-        /* top nav */
-        .navx {
-            background: #fff;
-            border: 1px solid #eef2ff;
-            border-radius: 18px;
-            padding: 14px 18px;
-            box-shadow: 0 10px 24px rgba(20, 40, 80, .06);
-            margin-bottom: 18px;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .mark {
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #0d6efd, #2193b0);
-        }
-
-        .muted {
-            color: #6b7280;
-        }
-
-        .btn-pill {
-            border-radius: 14px;
-            padding: 12px 16px;
-            font-weight: 700;
-        }
-
-        /* main card */
-        .cardx {
-            background: #fff;
-            border: 1px solid #eef2ff;
-            border-radius: 22px;
-            box-shadow: 0 14px 30px rgba(20, 40, 80, .07);
-            overflow: hidden;
-        }
-
-        .topbar {
-            background: linear-gradient(135deg, #0d6efd, #2193b0);
-            color: #fff;
-            padding: 24px 26px;
-        }
-
-        .topbar h3 {
-            margin: 0;
-            font-weight: 900;
-        }
-
-        /* KPI */
-        .kpi {
-            background: #ffffff;
-            border: 1px solid #eef2ff;
-            border-radius: 18px;
-            padding: 18px;
-            height: 100%;
-        }
-
-        .kpi .label {
-            color: #6b7280;
-            font-size: 13px;
-        }
-
-        .kpi .value {
-            font-size: 30px;
-            font-weight: 900;
-            margin-top: 6px;
-        }
-
-        .quick {
-            background: #f8fafc;
-            border: 1px dashed #e5e7eb;
-            border-radius: 18px;
-            padding: 18px;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard | Digital Dairy</title>
+    <link rel="stylesheet" href="/static/css/customer_style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 </head>
+<body style="background-color: #f8fafc;">
+    <nav class="nav">
+        <div class="container nav-inner">
+            <a href="{% url 'customer_dashboard' %}" class="logo">
+                <i class="fas fa-droplet" style="color: var(--primary);"></i> DIGITAL DAIRY
+            </a>
+            <ul class="nav-links">
 
-<body>
-    <div class="wrap">
+                <li><a href="{% url 'customer_dashboard' %}" style="color: var(--primary);">Dashboard</a></li>
+                <li><a href="{% url 'customer_my_orders' %}">Orders</a></li>
+                <li><a href="{% url 'customer_logout' %}" class="btn-primary" style="padding: 8px 16px; background: #ef4444; font-size: 0.8rem;">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
 
-        <!-- Top bar -->
-        <div class="navx d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div class="brand">
-                <div class="mark"></div>
-                <div>
-                    <div class="fw-bold">Digital Dairy</div>
-                    <div class="muted small">Customer Panel</div>
-                </div>
+    <main class="container" style="margin-top: 40px; margin-bottom: 80px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px;">
+            <div>
+                <p style="color: var(--text-meta); margin-bottom: 5px; font-weight: 600;">Welcome back,</p>
+                <h1 style="font-weight: 900; margin: 0; color: var(--text-main);">{{ customer.name }}</h1>
             </div>
+        </div>
 
-            <a href="{% url 'customer_logout' %}" class="btn btn-outline-danger btn-pill">
-                Logout
+        <!-- Quick Actions -->
+        <h3 style="font-weight: 800; margin-bottom: 15px; font-size: 1.2rem;">Quick Actions</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px;">
+            <a href="{% url 'customer_place_order' %}" class="card glass-effect" style="text-align: center; padding: 30px; text-decoration: none; display: block; border-radius: 20px; border: 2px solid transparent; transition: all 0.2s;">
+                <div style="background: #eff6ff; color: var(--primary); width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 15px;">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <div style="font-weight: 800; color: var(--text-main);">New Order</div>
+            </a>
+            <a href="{% url 'customer_my_orders' %}" class="card glass-effect" style="text-align: center; padding: 30px; text-decoration: none; display: block; border-radius: 20px; border: 2px solid transparent;">
+                <div style="background: #fdf4ff; color: #c026d3; width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 15px;">
+                    <i class="fas fa-history"></i>
+                </div>
+                <div style="font-weight: 800; color: var(--text-main);">Order History</div>
+            </a>
+            <a href="{% url 'customer_statement' %}" class="card glass-effect" style="text-align: center; padding: 30px; text-decoration: none; display: block; border-radius: 20px; border: 2px solid transparent;">
+                <div style="background: #f0fdf4; color: #16a34a; width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 15px;">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <div style="font-weight: 800; color: var(--text-main);">Statement</div>
             </a>
         </div>
 
-        <!-- Dashboard card -->
-        <div class="cardx">
-
-            <div class="topbar">
-                <h3>Welcome, {{ customer.name }} 👋</h3>
-                <div class="opacity-75">Manage your orders easily</div>
-            </div>
-
-            <div class="p-4 p-md-4">
-
-                <!-- KPI row -->
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="kpi">
-                            <div class="label">Total Orders</div>
-                            <div class="value">{{ total_orders }}</div>
+        <h3 style="font-weight: 800; margin-bottom: 15px; font-size: 1.2rem;">Recent Orders</h3>
+        {% if recent_orders %}
+            <div style="display: grid; gap: 15px;">
+                {% for order in recent_orders %}
+                    <div class="card" style="padding: 20px; border-radius: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                    <span style="font-weight: 800;">{{ order.product_type }}</span>
+                                    <span style="color: var(--text-meta); font-size: 0.85rem;">• {{ order.date }}</span>
+                                </div>
+                                <div style="font-size: 0.9rem; color: var(--text-meta);">
+                                    {% if order.product_type == 'MILK' %}
+                                        {{ order.packets }} pkt x {{ order.brand }}
+                                    {% else %}
+                                        {{ order.quantity }} {{ order.unit }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 800; color: var(--primary); margin-bottom: 8px;">₹ {{ order.total }}</div>
+                                {% if order.status == 'PENDING' %}
+                                    <span style="background: #fffbeb; color: #f59e0b; padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 700;">PENDING</span>
+                                {% elif order.status == 'APPROVED' %}
+                                    <span style="background: #f0fdf4; color: #16a34a; padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 700;">APPROVED</span>
+                                {% else %}
+                                    <span style="background: #fef2f2; color: #dc2626; padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 700;">{{ order.status }}</span>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
-
-                    <div class="col-md-6">
-                        <div class="kpi">
-                            <div class="label">Pending Orders</div>
-                            <div class="value">{{ pending }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="quick mt-4">
-                    <div class="fw-bold mb-2">Quick Actions</div>
-                    <div class="muted small mb-3">
-                        Place new dairy orders or track your existing ones.
-                    </div>
-
-                    <div class="d-flex gap-2 flex-wrap">
-                        <a href="{% url 'customer_place_order' %}" class="btn btn-success btn-pill btn-lg">
-                            Place Order
-                        </a>
-
-                        <a href="{% url 'customer_my_orders' %}" class="btn btn-primary btn-pill btn-lg">
-                            My Orders
-                        </a>
-                    </div>
-                </div>
-
-                <div class="text-center muted small mt-4">
-                    © 2026 Digital Dairy • Customer Dashboard
-                </div>
-
+                {% endfor %}
             </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="{% url 'customer_my_orders' %}" style="color: var(--primary); font-weight: 700; text-decoration: none;">View All Orders <i class="fas fa-arrow-right"></i></a>
+            </div>
+        {% else %}
+            <div style="background: white; padding: 40px; text-align: center; border-radius: 20px;">
+                <div style="color: #cbd5e1; font-size: 3rem; margin-bottom: 15px;"><i class="fas fa-shopping-basket"></i></div>
+                <p style="color: var(--text-meta); font-weight: 600; margin-bottom: 20px;">You haven't placed any orders yet.</p>
+                <a href="{% url 'customer_place_order' %}" class="btn-primary" style="display: inline-block;">Place First Order</a>
+            </div>
+        {% endif %}
+
+    </main>
+
+    <footer style="margin-top: 0;">
+        <div class="container">
+            <p style="font-size: 0.9rem;">&copy; 2026 Digital Dairy Management System.</p>
         </div>
-
-    </div>
+    </footer>
 </body>
-
 </html>

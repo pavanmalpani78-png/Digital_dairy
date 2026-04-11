@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add New Driver | Milk Khata{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-lg-6">
+        <div class="glass-card overflow-hidden">
+            <!-- Header -->
+            <div class="bg-primary p-4 text-white d-flex align-items-center justify-content-between">
+                <div>
+                    <h3 class="fw-800 mb-1 text-white">Register Driver</h3>
+                    <p class="mb-0 opacity-75 small">Add a new delivery boy to your team</p>
+                </div>
+                <a href="{% url 'driver_list' %}" class="btn btn-sm btn-light rounded-pill px-3 fw-600">
+                    <i class="bi bi-arrow-left me-1"></i> Back to List
+                </a>
+            </div>
+
+            <!-- Form -->
+            <div class="p-4 p-md-5">
+                <form method="POST" action="{% url 'add_driver' %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Driver Full Name</label>
+                        <div class="input-group mb-2">
+                            <span class="input-group-text bg-light border-0 rounded-start-4 px-3 text-muted">
+                                <i class="bi bi-person-badge"></i>
+                            </span>
+                            <input type="text" name="name" class="form-control bg-light border-0 py-3 rounded-end-4 shadow-none" placeholder="Enter driver name" required>
+                        </div>
+                        <p class="text-muted small px-1">This name will appear in the delivery assignment dropdown.</p>
+                    </div>
+
+                    <div class="mb-5">
+                        <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Phone Number</label>
+                        <div class="input-group mb-2">
+                            <span class="input-group-text bg-light border-0 rounded-start-4 px-3 text-muted">
+                                <i class="bi bi-phone"></i>
+                            </span>
+                            <input type="text" name="phone" id="id_phone" class="form-control bg-light border-0 py-3 rounded-end-4 shadow-none" placeholder="10-digit mobile number" required>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-4 pt-4 border-top">
+                        <div class="d-flex gap-3">
+                            <button type="button" onclick="window.history.back()" class="btn btn-light rounded-pill px-5 py-3 fw-600 text-muted border flex-grow-1">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn-premium flex-grow-1 py-3 justify-content-center border-0 shadow-lg">
+                                Add Driver <i class="bi bi-plus-circle ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .tracking-wider { letter-spacing: 0.08em; }
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .fw-600 { font-weight: 600; }
+    .rounded-start-4 { border-top-left-radius: 1rem !important; border-bottom-left-radius: 1rem !important; }
+    .rounded-end-4 { border-top-right-radius: 1rem !important; border-bottom-right-radius: 1rem !important; }
+</style>
+{% endblock %}

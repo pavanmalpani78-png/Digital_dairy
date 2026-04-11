@@ -1,47 +1,86 @@
 {% extends "base.html" %}
-{% block title %}Add Customer{% endblock %}
+
+{% block title %}Add Customer | Milk Khata Digital Dairy{% endblock %}
 
 {% block content %}
-<div class="card card-pro">
-  <div class="topbar d-flex justify-content-between align-items-center">
-    <div>
-      <h3>Add Customer</h3>
-      <p>Fill details and save customer</p>
+<div class="glass-card overflow-hidden" style="max-width: 800px; margin: 0 auto;">
+    <div class="bg-primary p-4 text-white d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="fw-800 mb-1 text-white">Add New Customer</h3>
+            <p class="mb-0 opacity-75 small">Fill in the details to register a new customer</p>
+        </div>
+        <a href="{% url 'customer_page' %}" class="btn btn-light rounded-pill px-4 fw-600">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
     </div>
-    <a href="{% url 'customer_page' %}" class="btn btn-light btn-pill">Back</a>
-  </div>
 
-  <div class="p-3 p-md-4">
-    <form method="POST">
-      {% csrf_token %}
-
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">Name</label>
-          {{ form.name }}
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">Phone</label>
-          {{ form.phone }}
-        </div>
-
-        <div class="col-md-12">
-          <label class="form-label fw-semibold">Address</label>
-          {{ form.address }}
-        </div>
-
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">Opening Balance</label>
-          {{ form.balance }}
-        </div>
-
-        <div class="col-md-12 d-flex gap-2 mt-2">
-          <button class="btn btn-primary btn-pill">Save</button>
-          <a href="{% url 'customer_page' %}" class="btn btn-outline-secondary btn-pill">Cancel</a>
-        </div>
-      </div>
-    </form>
-  </div>
+    <div class="p-4 p-md-5">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Full Name</label>
+                    {{ form.name }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Phone Number</label>
+                    {{ form.phone }}
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Residence Address</label>
+                    {{ form.address }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Opening Balance (₹)</label>
+                    {{ form.balance }}
+                </div>
+                
+                <!-- Login Credentials -->
+                <div class="col-12 mt-4">
+                    <h5 class="fw-800 text-primary mb-3">Customer Panel Login (Optional)</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Login Phone</label>
+                            {{ form.login_phone }}
+                            <div class="small text-muted mt-1">Used for customer to login</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Login Password</label>
+                            {{ form.login_password }}
+                            <div class="small text-muted mt-1">Keep it secure</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-12 mt-5">
+                    <div class="d-flex gap-3">
+                        <button class="btn-premium px-5 py-3 justify-content-center flex-grow-1">
+                            Save Customer <i class="bi bi-person-check-fill ms-2"></i>
+                        </button>
+                        <a href="{% url 'customer_page' %}" class="btn btn-outline-secondary border-2 rounded-4 px-4 py-3 fw-600">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
+
+<style>
+    .tracking-wider { letter-spacing: 0.05em; }
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    /* Apply consistent styling to Django form inputs */
+    input[type="text"], input[type="number"], textarea, select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem !important;
+        border: none !important;
+        background-color: #f8fafc !important;
+        font-weight: 500;
+    }
+    input:focus, textarea:focus, select:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(0, 97, 255, 0.1) !important;
+    }
+</style>
 {% endblock %}

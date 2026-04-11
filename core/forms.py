@@ -6,13 +6,12 @@ from .models import Customer, MilkOrder, MilkTransaction
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
-        fields = ["name", "phone", "address"]
+        fields = ["name", "phone", "address", "balance", "login_phone", "login_password"]
+        widgets = {
+            "address": forms.Textarea(attrs={"rows": 2}),
+            "login_password": forms.PasswordInput(render_value=True),
+        }
 
-
-# class MilkOrderForm(forms.ModelForm):
-#     class Meta:
-#         model = MilkOrder
-#         fields = ["customer", "milk_type", "quantity", "rate"]
 
 
 from django import forms

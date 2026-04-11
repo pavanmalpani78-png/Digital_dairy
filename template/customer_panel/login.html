@@ -1,157 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Digital Dairy | Customer Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <style>
-        body {
-            background: #f5f7fb;
-        }
-
-        .wrap {
-            max-width: 1150px;
-            margin: 0 auto;
-            padding: 28px 16px 40px;
-        }
-
-        .navx {
-            background: #fff;
-            border: 1px solid #eef2ff;
-            border-radius: 18px;
-            padding: 14px 18px;
-            box-shadow: 0 10px 24px rgba(20, 40, 80, .06);
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .mark {
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #0d6efd, #2193b0);
-        }
-
-        .muted {
-            color: #6b7280;
-        }
-
-        .btn-pill {
-            border-radius: 14px;
-            padding: 12px 16px;
-            font-weight: 700;
-        }
-
-        .cardx {
-            margin-top: 18px;
-            background: #fff;
-            border: 1px solid #eef2ff;
-            border-radius: 22px;
-            box-shadow: 0 14px 30px rgba(20, 40, 80, .07);
-            overflow: hidden;
-            max-width: 560px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .topbar {
-            background: linear-gradient(135deg, #0d6efd, #2193b0);
-            color: #fff;
-            padding: 22px 24px;
-        }
-
-        .topbar h3 {
-            margin: 0;
-            font-weight: 900;
-            letter-spacing: .2px;
-        }
-
-        .form-control {
-            border-radius: 14px;
-            padding: 12px 14px;
-            border: 1px solid #e5e7eb;
-        }
-
-        .help {
-            background: #f8fafc;
-            border: 1px dashed #e5e7eb;
-            border-radius: 16px;
-            padding: 12px 14px;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Login | Digital Dairy</title>
+    <link rel="stylesheet" href="/static/css/customer_style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
-
-<body>
-    <div class="wrap">
-
-        <!-- Top small navbar (same as Option 2 home) -->
-        <div class="navx d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div class="brand">
-                <div class="mark"></div>
-                <div>
-                    <div class="fw-bold">Digital Dairy</div>
-                    <div class="muted small">Customer Panel</div>
-                </div>
-            </div>
-
-            <!-- If you have customer_home URL, replace # with it -->
-            <a href="#" class="btn btn-outline-secondary btn-pill">Back</a>
+<body style="background-color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;">
+    
+    <div style="max-width: 450px; width: 100%;">
+        <!-- Logo -->
+        <div style="text-align: center; margin-bottom: 40px;">
+            <a href="/" class="logo" style="justify-content: center;">
+                <i class="fas fa-droplet" style="color: var(--primary);"></i> DIGITAL DAIRY
+            </a>
         </div>
 
-        <!-- Login card -->
-        <div class="cardx">
-            <div class="topbar">
-                <div class="badge rounded-pill text-bg-light px-3 py-2" style="color:#0b1220;">
-                    Customer Login
-                </div>
-                <h3 class="mt-2">Welcome back 👋</h3>
-                <div class="opacity-75">Login to place your dairy order</div>
-            </div>
+        <div class="card animate-up" style="padding: 40px; border-radius: 30px; box-shadow: 0 40px 80px -20px rgba(0,0,0,0.1); border: none;">
+            <h2 style="font-weight: 800; margin-bottom: 8px; text-align: center;">Welcome Back</h2>
+            <p style="text-align: center; color: var(--text-meta); margin-bottom: 35px; font-size: 0.95rem;">Login to your customer portal</p>
 
-            <div class="p-4 p-md-4">
-
-                {% if messages %}
-                {% for m in messages %}
-                <div class="alert alert-danger mb-3">{{ m }}</div>
+            {% if messages %}
+                {% for message in messages %}
+                    <div style="background: #fef2f2; color: #dc2626; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; margin-bottom: 20px; border: 1px solid #fee2e2;">
+                        <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i> {{ message }}
+                    </div>
                 {% endfor %}
-                {% endif %}
+            {% endif %}
 
-                <form method="POST">
-                    {% csrf_token %}
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Phone Number</label>
-                        <input name="phone" class="form-control" placeholder="e.g. 9876543210" required>
-                        <div class="muted small mt-1">Enter the same phone number registered by shopkeeper.</div>
+            <form method="POST">
+                {% csrf_token %}
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 700; color: var(--text-meta); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 8px;">Phone Number</label>
+                    <div style="position: relative;">
+                        <i class="fas fa-phone" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-meta); font-size: 0.9rem;"></i>
+                        <input type="text" name="phone" placeholder="Registered Phone" required style="width: 100%; padding: 15px 15px 15px 45px; border-radius: 14px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 600; font-family: inherit; font-size: 0.95rem;">
                     </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Password</label>
-                        <input name="password" type="password" class="form-control" placeholder="Enter password"
-                            required>
-                    </div>
-
-                    <button class="btn btn-primary btn-pill w-100 btn-lg">Login</button>
-                </form>
-
-                <div class="help mt-3">
-                    <div class="fw-bold">Demo Tip</div>
-                    <div class="muted small">If you don’t know your login, ask the shopkeeper to set phone & password
-                        for your customer profile.</div>
                 </div>
 
-                <div class="text-center muted small mt-3">© 2026 Digital Dairy • Customer Panel</div>
+                <div style="margin-bottom: 30px;">
+                    <label style="display: block; font-weight: 700; color: var(--text-meta); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 8px;">Access Password</label>
+                    <div style="position: relative;">
+                        <i class="fas fa-lock" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-meta); font-size: 0.9rem;"></i>
+                        <input type="password" name="password" placeholder="••••••••" required style="width: 100%; padding: 15px 15px 15px 45px; border-radius: 14px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 600; font-family: inherit; font-size: 0.95rem;">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%; padding: 16px; justify-content: center; font-size: 1rem; border-radius: 14px;">
+                    Login to Portal <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <div style="margin-top: 30px; text-align: center;">
+                <p style="color: var(--text-meta); font-size: 0.85rem; margin-bottom: 0;">Don't have access? <br>Ask your dairy owner to set up your login.</p>
             </div>
         </div>
 
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="/" style="text-decoration: none; color: var(--text-meta); font-weight: 700; font-size: 0.85rem;">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
     </div>
-</body>
 
+</body>
 </html>
