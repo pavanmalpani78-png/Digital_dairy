@@ -33,7 +33,6 @@ class ShopkeeperProfile(models.Model):
     shop_name  = models.CharField(max_length=100, blank=True, default='')
     shop_address = models.TextField(blank=True, default='')
     phone      = models.CharField(max_length=15, blank=True, default='')
-    upi_id     = models.CharField(max_length=100, blank=True, default='', help_text='e.g. name@upi')
     # Unique code customers use to identify their shop at login
     shop_code  = models.CharField(max_length=50, unique=True, blank=True,
                                   help_text='Auto-filled from username. Share this with your customers.')
@@ -189,15 +188,20 @@ class MilkOrder(models.Model):
     def save(self, *args, **kwargs):
         """
         ✅ Logic:
-        - If product_type == MILK and pack_size+packets given -> packets system
+        - If pack_size+packets given -> packets system for ANY product
         - Else -> quantity * rate for ANY product (including MILK liters mode)
         """
-        if self.product_type == "MILK" and self.pack_size and self.packets:
+        if self.pack_size and self.packets:
             size = D(self.pack_size, "0")
             pkts = D(self.packets, "0")
 
-            self.rate = self.milk_rate_from_base()   # per packet
-            self.total_liters = pkts * size
+            if self.product_type == "MILK":
+                self.rate = self.milk_rate_from_base()   # per packet
+                self.total_liters = pkts * size
+            else:
+                self.rate = D(self.rate, "0")
+                self.total_liters = Decimal("0")
+
             self.total = pkts * self.rate
 
             self.quantity = Decimal("0")

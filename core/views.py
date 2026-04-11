@@ -229,8 +229,8 @@ def edit_order(request, pk):
 
             order.brand = None
             order.milk_type = None
-            order.pack_size = None
-            order.packets = 0
+            order.pack_size = request.POST.get("pack_size") or None
+            order.packets = int(request.POST.get("packets") or 0)
 
         order.save()
         return redirect(f"/milkorder/?date={order.date}")
