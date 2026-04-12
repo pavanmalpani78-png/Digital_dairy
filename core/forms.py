@@ -14,23 +14,24 @@ class CustomerForm(forms.ModelForm):
 
 
 
-from django import forms
-from .models import MilkTransaction
-
 class MilkTransactionForm(forms.ModelForm):
     class Meta:
         model = MilkTransaction
-        fields = ["customer", "product_type", "qty", "unit", "rate", "payment_status", "note"]
-
+        fields = ["customer", "product_type", "qty", "unit", "rate", "payment_status"]
 
         widgets = {
             "customer": forms.Select(attrs={"class": "form-select"}),
-            "quantity": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
+            "qty": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
             "unit": forms.Select(attrs={"class": "form-select"}),
             "rate": forms.NumberInput(attrs={"class": "form-control", "step": "0.01"}),
             "payment_status": forms.Select(attrs={"class": "form-select"}),
-            "note": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
         }
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        if user:
+            self.fields['customer'].queryset = Customer.objects.filter(shopkeeper=user).order_by('name')
 
 
         

@@ -253,7 +253,7 @@ def transaction_page(request):
 @login_required
 def add_transaction(request):
     if request.method == "POST":
-        form = MilkTransactionForm(request.POST)
+        form = MilkTransactionForm(request.POST, user=request.user)
         if form.is_valid():
             t = form.save(commit=False)
             t.shopkeeper = request.user
@@ -261,7 +261,7 @@ def add_transaction(request):
             t.save()
             return redirect("transaction_page")
     else:
-        form = MilkTransactionForm()
+        form = MilkTransactionForm(user=request.user)
     return render(request, "add_transaction.html", {"form": form})
 
 @login_required
@@ -378,6 +378,7 @@ def bill_view(request, customer_id):
         "total_liters": totals["total_liters"] or 0,
         "total_qty": totals["total_qty"] or 0,
         "total_amount": totals["total_amount"] or 0,
+        "shop_profile": getattr(request.user, "profile", None),
     })
 
 
@@ -396,11 +397,15 @@ def bill_pdf(request, customer_id):
 
     totals = orders.aggregate(
         total_liters=Sum("total_liters"),
+        total_qty=Sum("quantity"),
         total_amount=Sum("total"),
     )
 
     total_liters = totals["total_liters"] or 0
+    total_qty = totals["total_qty"] or 0
     grand_total = totals["total_amount"] or 0
+    
+    shop_profile = getattr(request.user, "profile", None)
 
     today = timezone.localdate()
     invoice_no = f"INV-{customer.id}-{today.strftime('%Y%m%d')}"
@@ -455,9 +460,9 @@ def bill_pdf(request, customer_id):
     c.drawString(width/2 + 10, y - 25, "Bill To (Customer)")
 
     c.setFont("Helvetica", 10)
-    c.drawString(50, y - 42, "Milk Khata Dairy Store")
-    c.drawString(50, y - 56, "Address: Your Shop Address")
-    c.drawString(50, y - 70, "Phone: +91-XXXXXXXXXX")
+    c.drawString(50, y - 42, shop_profile.shop_name if shop_profile and shop_profile.shop_name else "Milk Khata Dairy Store")
+    c.drawString(50, y - 56, f"Address: {shop_profile.shop_address}" if shop_profile and shop_profile.shop_address else "Address: Your Shop Address")
+    c.drawString(50, y - 70, f"Phone: {shop_profile.phone}" if shop_profile and shop_profile.phone else "Phone: +91-XXXXXXXXXX")
 
     c.drawString(width/2 + 10, y - 42, f"Name: {customer.name}")
     c.drawString(width/2 + 10, y - 56, f"Phone: {customer.phone or '-'}")
@@ -551,8 +556,9 @@ def bill_pdf(request, customer_id):
 
     c.setFillColor(colors.black)
     c.setFont("Helvetica-Bold", 11)
-    c.drawString(width - 230, y - 20, f"Total Liters: {total_liters}")
-    c.drawString(width - 230, y - 40, f"Grand Total: {money(grand_total)}")
+    c.drawString(width - 230, y - 15, f"Total Liters: {total_liters}")
+    c.drawString(width - 230, y - 30, f"Other Products Qty: {total_qty}")
+    c.drawString(width - 230, y - 45, f"Grand Total: {money(grand_total)}")
 
     c.showPage()
     c.save()

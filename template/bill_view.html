@@ -145,9 +145,9 @@
                     <div class="col-md-6">
                         <div class="box">
                             <div class="fw-bold mb-1">From (Shop)</div>
-                            <div class="fw-semibold">Milk Khata Dairy Store</div>
-                            <div class="muted">Address: Your Shop Address</div>
-                            <div class="muted">Phone: +91-XXXXXXXXXX</div>
+                            <div class="fw-semibold">{{ shop_profile.shop_name|default:"Milk Khata Dairy Store" }}</div>
+                            <div class="muted">Address: {{ shop_profile.shop_address|default:"Your Shop Address" }}</div>
+                            <div class="muted">Phone: {{ shop_profile.phone|default:"+91-XXXXXXXXXX" }}</div>
                         </div>
                     </div>
 

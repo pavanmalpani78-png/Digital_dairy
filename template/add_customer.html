@@ -27,37 +27,42 @@
                     {{ form.phone }}
                 </div>
                 <div class="col-12">
-                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Residence Address</label>
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Residence
+                        Address</label>
                     {{ form.address }}
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Opening Balance (₹)</label>
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Opening Balance
+                        (₹)</label>
                     {{ form.balance }}
                 </div>
-                
+
                 <!-- Login Credentials -->
                 <div class="col-12 mt-4">
                     <h5 class="fw-800 text-primary mb-3">Customer Panel Login (Optional)</h5>
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Login Phone</label>
+                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Login
+                                Phone</label>
                             {{ form.login_phone }}
                             <div class="small text-muted mt-1">Used for customer to login</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Login Password</label>
+                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Login
+                                Password</label>
                             {{ form.login_password }}
                             <div class="small text-muted mt-1">Keep it secure</div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-12 mt-5">
                     <div class="d-flex gap-3">
                         <button class="btn-premium px-5 py-3 justify-content-center flex-grow-1">
                             Save Customer <i class="bi bi-person-check-fill ms-2"></i>
                         </button>
-                        <a href="{% url 'customer_page' %}" class="btn btn-outline-secondary border-2 rounded-4 px-4 py-3 fw-600">Cancel</a>
+                        <a href="{% url 'customer_page' %}"
+                            class="btn btn-outline-secondary border-2 rounded-4 px-4 py-3 fw-600">Cancel</a>
                     </div>
                 </div>
             </div>
@@ -66,11 +71,23 @@
 </div>
 
 <style>
-    .tracking-wider { letter-spacing: 0.05em; }
-    .fw-800 { font-weight: 800; }
-    .fw-700 { font-weight: 700; }
+    .tracking-wider {
+        letter-spacing: 0.05em;
+    }
+
+    .fw-800 {
+        font-weight: 800;
+    }
+
+    .fw-700 {
+        font-weight: 700;
+    }
+
     /* Apply consistent styling to Django form inputs */
-    input[type="text"], input[type="number"], textarea, select {
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
         width: 100%;
         padding: 0.75rem 1rem;
         border-radius: 0.75rem !important;
@@ -78,7 +95,10 @@
         background-color: #f8fafc !important;
         font-weight: 500;
     }
-    input:focus, textarea:focus, select:focus {
+
+    input:focus,
+    textarea:focus,
+    select:focus {
         outline: none;
         box-shadow: 0 0 0 3px rgba(0, 97, 255, 0.1) !important;
     }
