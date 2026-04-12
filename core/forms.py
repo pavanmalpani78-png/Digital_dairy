@@ -6,7 +6,7 @@ from .models import Customer, MilkOrder, MilkTransaction
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
-        fields = ["name", "phone", "address", "balance", "login_phone", "login_password"]
+        fields = ["name", "phone", "address", "login_phone", "login_password"]
         widgets = {
             "address": forms.Textarea(attrs={"rows": 2}),
             "login_password": forms.PasswordInput(render_value=True),
