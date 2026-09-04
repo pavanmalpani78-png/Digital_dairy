@@ -16,7 +16,8 @@
 
     <div class="p-4 p-md-5">
         <div class="alert alert-info border-0 rounded-4 py-3 small bg-info-subtle text-info mb-4">
-            <i class="bi bi-lightbulb-fill me-2"></i> <strong>Tip:</strong> Select a customer and choose <b>MILK</b> to auto-fill details from their latest delivery.
+            <i class="bi bi-lightbulb-fill me-2"></i> <strong>Tip:</strong> Select a customer and choose <b>MILK</b> to
+            auto-fill details from their latest delivery.
         </div>
 
         <form method="POST">
@@ -31,7 +32,8 @@
                     {{ form.product_type }}
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Payment Status</label>
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Payment
+                        Status</label>
                     {{ form.payment_status }}
                 </div>
 
@@ -48,13 +50,14 @@
                     {{ form.rate }}
                 </div>
 
-                
+
                 <div class="col-12 mt-5">
                     <div class="d-flex gap-3">
                         <button class="btn-premium px-5 py-3 justify-content-center flex-grow-1">
                             Save Transaction <i class="bi bi-check-lg ms-2"></i>
                         </button>
-                        <a href="{% url 'transaction_page' %}" class="btn btn-outline-secondary border-2 rounded-4 px-4 py-3 fw-600">Cancel</a>
+                        <a href="{% url 'transaction_page' %}"
+                            class="btn btn-outline-secondary border-2 rounded-4 px-4 py-3 fw-600">Cancel</a>
                     </div>
                 </div>
             </div>
@@ -64,38 +67,53 @@
 
 {% block extra_js %}
 <script>
-    const customerSelect = document.getElementById("id_customer");
-    const productSelect = document.getElementById("id_product_type");
-    const qtyInput = document.getElementById("id_qty");
-    const unitSelect = document.getElementById("id_unit");
-    const rateInput = document.getElementById("id_rate");
+    document.addEventListener("DOMContentLoaded", function() {
+        const customerSelect = document.getElementById("id_customer");
+        const productSelect = document.getElementById("id_product_type");
+        const qtyInput = document.getElementById("id_qty");
+        const unitSelect = document.getElementById("id_unit");
+        const rateInput = document.getElementById("id_rate");
 
-    async function autofillMilk() {
-        const cid = customerSelect.value;
-        const prod = productSelect.value;
-        if (!cid || prod !== "MILK") return;
+        if (customerSelect && productSelect) {
+            async function autofillMilk() {
+                const cid = customerSelect.value;
+                const prod = productSelect.value;
+                if (!cid || prod !== "MILK") return;
 
-        const res = await fetch(`/api/last-milk/?customer_id=${cid}`);
-        const data = await res.json();
-        if (data.ok) {
-            qtyInput.value = data.liters ?? "";
-            unitSelect.value = "L";
-            rateInput.value = data.rate ?? "";
+                const res = await fetch(`/api/last-milk/?customer_id=${cid}`);
+                const data = await res.json();
+                if (data.ok) {
+                    qtyInput.value = data.liters ?? "";
+                    unitSelect.value = "L";
+                    rateInput.value = data.rate ?? "";
+                }
+            }
+
+            customerSelect.addEventListener("change", autofillMilk);
+            productSelect.addEventListener("change", () => {
+                if (productSelect.value === "MILK") autofillMilk();
+            });
         }
-    }
-
-    customerSelect.addEventListener("change", autofillMilk);
-    productSelect.addEventListener("change", () => {
-        if (productSelect.value === "MILK") autofillMilk();
     });
 </script>
 {% endblock %}
 
 <style>
-    .tracking-wider { letter-spacing: 0.05em; }
-    .fw-800 { font-weight: 800; }
-    .fw-700 { font-weight: 700; }
-    input, textarea, select {
+    .tracking-wider {
+        letter-spacing: 0.05em;
+    }
+
+    .fw-800 {
+        font-weight: 800;
+    }
+
+    .fw-700 {
+        font-weight: 700;
+    }
+
+    input,
+    textarea,
+    select {
         width: 100%;
         padding: 0.75rem 1rem;
         border-radius: 0.75rem !important;
@@ -106,4 +124,5 @@
     }
 </style>
 {% endblock %}
+
 </html>

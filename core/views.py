@@ -7,9 +7,17 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+import urllib.parse
+import os
+import json
+from datetime import timedelta
 
-from .models import Customer, MilkOrder, MilkTransaction, DeliveryBoy, UPIPayment, ShopkeeperProfile
+from .models import Customer, MilkOrder, MilkTransaction, DeliveryBoy, UPIPayment, ShopkeeperProfile, ShopSettings, Expense, Subscription
 from .forms import CustomerForm, MilkTransactionForm
+from .utils import send_automated_whatsapp
+
+PRODUCT_TYPES = [("MILK", "Milk"), ("CURD", "Curd"), ("BUTTER", "Butter"), ("GHEE", "Ghee"), ("OTHER", "Other")]
+
 
 def D(x, default="0"):
     try:
@@ -23,6 +31,7 @@ def D(x, default="0"):
         return Decimal(default)
 
 # ---------- BASIC PAGES ----------
+@login_required
 @login_required
 def dashboard(request):
     today = timezone.localdate()
@@ -47,6 +56,32 @@ def dashboard(request):
     # Pass shop profile if it exists (for displaying shop name in dashboard)
     shop_profile = getattr(request.user, 'profile', None)
 
+    # Calculate expenses and profit for current month
+    current_month_start = today.replace(day=1)
+    
+    month_revenue = MilkOrder.objects.filter(
+        shopkeeper=request.user, 
+        date__gte=current_month_start, 
+        date__lte=today
+    ).aggregate(Sum('total'))['total__sum'] or 0
+    
+    month_expenses = Expense.objects.filter(
+        shopkeeper=request.user, 
+        date__gte=current_month_start, 
+        date__lte=today
+    ).aggregate(Sum('amount'))['amount__sum'] or 0
+    
+    net_profit = month_revenue - month_expenses
+
+    # Calculate weekly revenue trend for the chart
+    labels = []
+    data = []
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        labels.append(day.strftime("%b %d"))
+        day_total = MilkOrder.objects.filter(shopkeeper=request.user, date=day).aggregate(Sum('total'))['total__sum'] or 0
+        data.append(float(day_total))
+
     context = {
         "total_customers": total_customers,
         "today_liters": today_liters,
@@ -55,6 +90,11 @@ def dashboard(request):
         "recent_orders": recent_orders,
         "today": today,
         "shop_profile": shop_profile,
+        "month_revenue": month_revenue,
+        "month_expenses": month_expenses,
+        "net_profit": net_profit,
+        "chart_labels_json": json.dumps(labels),
+        "chart_data_json": json.dumps(data),
     }
     return render(request, "dashboard.html", context)
 
@@ -108,10 +148,12 @@ def terms_page(request):
 
 # ---------- CUSTOMER CRUD (SHOPKEEPER) ----------
 @login_required
+@login_required
 def customer_page(request):
     customers = Customer.objects.filter(shopkeeper=request.user)
     return render(request, "customer.html", {"customers": customers})
 
+@login_required
 @login_required
 def add_customer(request):
     if request.method == "POST":
@@ -125,6 +167,7 @@ def add_customer(request):
         form = CustomerForm()
     return render(request, "add_customer.html", {"form": form})
 
+@login_required
 @login_required
 def edit_customer(request, id):
     customer = get_object_or_404(Customer, id=id, shopkeeper=request.user)
@@ -140,12 +183,14 @@ def edit_customer(request, id):
     return render(request, "edit_customer.html", {"customer": customer})
 
 @login_required
+@login_required
 def delete_customer(request, id):
     customer = get_object_or_404(Customer, id=id, shopkeeper=request.user)
     customer.delete()
     return redirect("customer_page")
 
 # ---------- MILK ORDER (SHOPKEEPER) ----------
+@login_required
 @login_required
 def milk_order(request):
     selected_date = request.GET.get("date")
@@ -193,6 +238,14 @@ def add_milk_order(request):
             )
             obj.save()
             messages.success(request, f"Order for {obj.customer.name} on {obj.date} recorded successfully!")
+            
+            # Send WhatsApp notification
+            msg_type = "Milk" if obj.product_type == "MILK" else obj.product_type.title()
+            qty_str = f"{obj.packets} pkt x {obj.pack_size}L" if obj.product_type == "MILK" else f"{obj.quantity} {obj.unit}"
+            shop_name = request.user.profile.shop_name if hasattr(request.user, 'profile') and request.user.profile.shop_name else "Milk Khata Dairy"
+            wa_msg = f"New {msg_type} order received!\nDate: {obj.date}\nQty: {qty_str}\nAmount: ₹{obj.total}\nThank you for choosing {shop_name}."
+            send_automated_whatsapp(request.user, obj.customer.phone, wa_msg)
+            
             return redirect(f"/milkorder/?date={date_str}")
         except Exception as e:
             messages.error(request, f"Failed to save order: {str(e)}")
@@ -203,6 +256,7 @@ def add_milk_order(request):
         "selected_date": selected_date,
     })
 
+@login_required
 @login_required
 def edit_order(request, pk):
     order = get_object_or_404(MilkOrder, pk=pk, shopkeeper=request.user)
@@ -238,6 +292,7 @@ def edit_order(request, pk):
     return render(request, "edit_order.html", {"order": order, "customers": customers})
 
 @login_required
+@login_required
 def delete_order(request, pk):
     order = get_object_or_404(MilkOrder, pk=pk, shopkeeper=request.user)
     d = order.date
@@ -246,10 +301,12 @@ def delete_order(request, pk):
 
 # ---------- TRANSACTIONS ----------
 @login_required
+@login_required
 def transaction_page(request):
     transactions = MilkTransaction.objects.filter(shopkeeper=request.user).select_related("customer").order_by("-date", "-id")
     return render(request, "transaction.html", {"transactions": transactions})
 
+@login_required
 @login_required
 def add_transaction(request):
     if request.method == "POST":
@@ -259,6 +316,12 @@ def add_transaction(request):
             t.shopkeeper = request.user
             t.amount = D(t.qty, "0") * D(t.rate, "0")
             t.save()
+            
+            # Send WhatsApp notification
+            shop_name = request.user.profile.shop_name if hasattr(request.user, 'profile') and request.user.profile.shop_name else "Milk Khata Dairy"
+            wa_msg = f"Payment Transaction Recorded\nDate: {t.date}\nAmount Billed: ₹{t.amount}\nAmount Paid: ₹{t.paid}\nBalance: ₹{t.customer.balance}\nThanks from {shop_name}."
+            send_automated_whatsapp(request.user, t.customer.phone, wa_msg)
+            
             return redirect("transaction_page")
     else:
         form = MilkTransactionForm(user=request.user)
@@ -291,6 +354,7 @@ def customer_last_milk(request):
     return JsonResponse({"ok": True, "liters": float(order.total_liters), "rate": float(rate_per_liter)})
 
 # ---------- DAILY REPORT ----------
+@login_required
 @login_required
 def daily_milk_report(request):
     selected_date = request.GET.get("date") or timezone.localdate().isoformat()
@@ -336,6 +400,7 @@ from .models import Customer, MilkOrder
 
 # 1️⃣ Bill home – select customer
 @login_required
+@login_required
 def bill_select_customer(request):
     customers = Customer.objects.filter(shopkeeper=request.user).order_by("name")
 
@@ -370,6 +435,28 @@ def bill_view(request, customer_id):
         total_amount=Sum("total"),
     )
 
+    total_amount_str = totals["total_amount"] or 0
+    date_str = ""
+    if start_date and end_date:
+        date_str = f" from {start_date} to {end_date}"
+    
+    shop_profile = getattr(request.user, "profile", None)
+    shop_name = shop_profile.shop_name if shop_profile and shop_profile.shop_name else "Milk Khata Dairy"
+    
+    wa_text = f"Hello {customer.name}, your milk bill{date_str} is ₹{total_amount_str} from {shop_name}. Please pay at your earliest convenience."
+    
+    phone_number = customer.phone.strip() if customer.phone else ""
+    if phone_number and not phone_number.startswith("+"):
+        phone_number = "+91" + phone_number if len(phone_number) == 10 else phone_number
+        
+    wa_url = f"https://wa.me/{phone_number.replace('+', '')}?text={urllib.parse.quote(wa_text)}" if phone_number else ""
+
+    shop_settings = getattr(request.user, "shop_settings", None)
+    qr_url = ""
+    if shop_settings and shop_settings.upi_id and totals["total_amount"]:
+        upi_string = f"upi://pay?pa={shop_settings.upi_id}&pn={urllib.parse.quote(shop_name)}&am={totals['total_amount']}&cu=INR"
+        qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={urllib.parse.quote(upi_string)}"
+
     return render(request, "bill_view.html", {
         "customer": customer,
         "orders": orders,
@@ -378,9 +465,10 @@ def bill_view(request, customer_id):
         "total_liters": totals["total_liters"] or 0,
         "total_qty": totals["total_qty"] or 0,
         "total_amount": totals["total_amount"] or 0,
-        "shop_profile": getattr(request.user, "profile", None),
+        "shop_profile": shop_profile,
+        "wa_url": wa_url,
+        "qr_url": qr_url,
     })
-
 
 # 3️⃣ Bill PDF (download)
 @login_required
@@ -768,6 +856,7 @@ def approve_order(request, pk):
     return redirect("pending_orders")
 
 @login_required
+@login_required
 def reject_order(request, pk):
     o = get_object_or_404(MilkOrder, pk=pk, shopkeeper=request.user)
     o.status = "REJECTED"
@@ -781,6 +870,7 @@ def customer_upi_payment(request):
         return redirect("customer_login")
     return redirect("customer_dashboard")
 
+@login_required
 @login_required
 def shop_delivery_dashboard(request):
     selected_date = request.GET.get("date") or timezone.localdate().isoformat()
@@ -869,5 +959,192 @@ def delete_driver(request, pk):
     driver.delete()
     messages.success(request, f"Driver {name} removed.")
     return redirect("driver_list")
+
+# ----------------- SETTINGS -----------------
+
+@login_required
+def settings_page(request):
+    settings, created = ShopSettings.objects.get_or_create(shopkeeper=request.user)
+    
+    if request.method == "POST":
+        settings.whatsapp_instance_id = request.POST.get("whatsapp_instance_id", "").strip()
+        settings.whatsapp_token = request.POST.get("whatsapp_token", "").strip()
+        settings.is_whatsapp_enabled = request.POST.get("is_whatsapp_enabled") == "on"
+        settings.upi_id = request.POST.get("upi_id", "").strip()
+        settings.save()
+        messages.success(request, "Settings updated successfully!")
+        return redirect("settings_page")
+        
+    return render(request, "settings.html", {"settings": settings})
+
+@login_required
+def export_customers_csv(request):
+    import csv
+    from django.http import HttpResponse
+    customers = Customer.objects.filter(shopkeeper=request.user)
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = f'attachment; filename="customers_{timezone.localdate()}.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(["Name", "Phone", "Address", "Balance"])
+
+    for c in customers:
+        writer.writerow([c.name, c.phone, c.address, c.balance])
+
+    return response
+
+# ----------------- EXPENSES -----------------
+
+@login_required
+def expense_list(request):
+    expenses = Expense.objects.filter(shopkeeper=request.user).order_by("-date", "-id")
+    total_expenses = expenses.aggregate(Sum('amount'))['amount__sum'] or 0
+    return render(request, "expense_list.html", {
+        "expenses": expenses,
+        "total_expenses": total_expenses
+    })
+
+@login_required
+def add_expense(request):
+    if request.method == "POST":
+        date = request.POST.get("date", timezone.localdate())
+        category = request.POST.get("category")
+        amount = request.POST.get("amount")
+        description = request.POST.get("description", "")
+        
+        if amount and category:
+            Expense.objects.create(
+                shopkeeper=request.user,
+                date=date,
+                category=category,
+                amount=amount,
+                description=description
+            )
+            messages.success(request, "Expense added successfully!")
+            return redirect("expense_list")
+        else:
+            messages.error(request, "Please provide amount and category.")
+            
+    categories = Expense.EXPENSE_CATEGORIES
+    return render(request, "expense_form.html", {"categories": categories, "today": timezone.localdate()})
+
+@login_required
+def delete_expense(request, pk):
+    expense = get_object_or_404(Expense, pk=pk, shopkeeper=request.user)
+    if request.method == "POST":
+        expense.delete()
+        messages.success(request, "Expense deleted.")
+    return redirect("expense_list")
+
+# ----------------- SUBSCRIPTIONS -----------------
+
+@login_required
+def subscription_list(request):
+    subscriptions = Subscription.objects.filter(shopkeeper=request.user).select_related("customer").order_by("-id")
+    return render(request, "subscriptions.html", {"subscriptions": subscriptions})
+
+@login_required
+def add_subscription(request):
+    if request.method == "POST":
+        customer_id = request.POST.get("customer")
+        product_type = request.POST.get("product_type")
+        is_active = request.POST.get("is_active") == "on"
+        
+        customer = get_object_or_404(Customer, id=customer_id, shopkeeper=request.user)
+        
+        sub = Subscription(
+            shopkeeper=request.user,
+            customer=customer,
+            product_type=product_type,
+            is_active=is_active
+        )
+        
+        if product_type == "MILK":
+            sub.brand = request.POST.get("brand")
+            sub.milk_type = request.POST.get("milk_type")
+            sub.pack_size = request.POST.get("pack_size")
+            sub.packets = request.POST.get("packets")
+        else:
+            sub.quantity = request.POST.get("quantity")
+            sub.unit = request.POST.get("unit")
+            sub.rate = request.POST.get("rate")
+            
+        sub.save()
+        messages.success(request, f"Subscription added for {customer.name}.")
+        return redirect("subscription_list")
+        
+    customers = Customer.objects.filter(shopkeeper=request.user)
+    return render(request, "subscription_form.html", {
+        "customers": customers,
+        "product_types": PRODUCT_TYPES,
+        "milk_brands": MilkOrder.MILK_BRANDS,
+        "milk_types": MilkOrder.MILK_TYPES,
+    })
+
+@login_required
+def toggle_subscription(request, pk):
+    sub = get_object_or_404(Subscription, pk=pk, shopkeeper=request.user)
+    sub.is_active = not sub.is_active
+    sub.save()
+    messages.success(request, f"Subscription {'activated' if sub.is_active else 'paused'}.")
+    return redirect("subscription_list")
+
+# ----------------- DELIVERY BOY APP (PUBLIC/UNAUTHENTICATED) -----------------
+
+def delivery_run_sheet(request, access_token):
+    # This view is accessible via a unique UUID URL without login
+    driver = get_object_or_404(DeliveryBoy, access_token=access_token, is_active=True)
+    today = timezone.localdate()
+    
+    # Get all orders assigned to this driver today
+    orders = MilkOrder.objects.filter(
+        delivery_boy=driver,
+        date=today
+    ).select_related("customer").order_by("id")
+    
+    return render(request, "run_sheet.html", {
+        "driver": driver,
+        "orders": orders,
+        "today": today
+    })
+
+def mark_delivered(request, access_token, order_id):
+    driver = get_object_or_404(DeliveryBoy, access_token=access_token, is_active=True)
+    order = get_object_or_404(MilkOrder, id=order_id, delivery_boy=driver)
+    
+    if request.method == "POST":
+        action = request.POST.get("action")
+        
+        if action == "mark_delivered_paid" or action == "mark_delivered_unpaid":
+            order.delivery_status = "DELIVERED"
+            new_status = "PAID" if action == "mark_delivered_paid" else "UNPAID"
+            order.payment_status = new_status
+            order.save()
+            
+            # Create a matching transaction for bookkeeping
+            qty = order.total_liters if order.product_type == "MILK" else order.quantity
+            unit = "L" if order.product_type == "MILK" else order.unit
+            
+            MilkTransaction.objects.create(
+                shopkeeper=order.shopkeeper,
+                customer=order.customer,
+                date=order.date,
+                amount=order.total,
+                paid=order.total if new_status == "PAID" else 0,
+                description=f"Delivery: {qty}{unit} {order.product_type}"
+            )
+            
+            # Update customer balance
+            if new_status == "UNPAID":
+                order.customer.balance += order.total
+                order.customer.save()
+                
+            # Send WhatsApp notification
+            shop_name = order.shopkeeper.profile.shop_name if hasattr(order.shopkeeper, 'profile') and order.shopkeeper.profile.shop_name else "Milk Khata Dairy"
+            payment_status = "Payment received" if new_status == "PAID" else f"Added to account (Balance: ₹{order.customer.balance})"
+            wa_msg = f"Delivery Completed!\nItem: {qty}{unit} {order.product_type}\nAmount: ₹{order.total}\nStatus: {payment_status}\nThank you! - {shop_name}"
+            send_automated_whatsapp(order.shopkeeper, order.customer.phone, wa_msg)
+            
+    return redirect("delivery_run_sheet", access_token=access_token)
 
 

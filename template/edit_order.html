@@ -9,7 +9,8 @@
             <h3 class="fw-800 mb-1 text-white">Edit Order</h3>
             <p class="mb-0 opacity-75 small">Modify the details of this delivery record</p>
         </div>
-        <a href="{% url 'milk_order' %}?date={{ order.date|date:'Y-m-d' }}" class="btn btn-light rounded-pill px-4 fw-600">
+        <a href="{% url 'milk_order' %}?date={{ order.date|date:'Y-m-d' }}"
+            class="btn btn-light rounded-pill px-4 fw-600">
             <i class="bi bi-arrow-left me-1"></i> Back
         </a>
     </div>
@@ -22,24 +23,27 @@
                     <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Customer</label>
                     <select name="customer" class="form-select bg-light border-0 py-3 rounded-4" required>
                         {% for c in customers %}
-                        <option value="{{ c.id }}" {% if order.customer_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                        <option value="{{ c.id }}" {% if order.customer_id==c.id %}selected{% endif %}>{{ c.name }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Order Date</label>
-                    <input type="date" name="date" class="form-control bg-light border-0 py-3 rounded-4" value="{{ order.date|date:'Y-m-d' }}" required>
+                    <input type="date" name="date" class="form-control bg-light border-0 py-3 rounded-4"
+                        value="{{ order.date|date:'Y-m-d' }}" required>
                 </div>
 
                 <div class="col-md-12">
                     <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Product Type</label>
-                    <select name="product_type" id="id_product_type" class="form-select bg-light border-0 py-3 rounded-4" required onchange="toggleOrderFields()">
-                        <option value="MILK" {% if order.product_type == "MILK" %}selected{% endif %}>Milk</option>
-                        <option value="GHEE" {% if order.product_type == "GHEE" %}selected{% endif %}>Ghee</option>
-                        <option value="PANEER" {% if order.product_type == "PANEER" %}selected{% endif %}>Paneer</option>
-                        <option value="CURD" {% if order.product_type == "CURD" %}selected{% endif %}>Curd</option>
-                        <option value="BUTTER" {% if order.product_type == "BUTTER" %}selected{% endif %}>Butter</option>
+                    <select name="product_type" id="id_product_type"
+                        class="form-select bg-light border-0 py-3 rounded-4" required onchange="toggleOrderFields()">
+                        <option value="MILK" {% if order.product_type=="MILK" %}selected{% endif %}>Milk</option>
+                        <option value="GHEE" {% if order.product_type=="GHEE" %}selected{% endif %}>Ghee</option>
+                        <option value="PANEER" {% if order.product_type=="PANEER" %}selected{% endif %}>Paneer</option>
+                        <option value="CURD" {% if order.product_type=="CURD" %}selected{% endif %}>Curd</option>
+                        <option value="BUTTER" {% if order.product_type=="BUTTER" %}selected{% endif %}>Butter</option>
                     </select>
                 </div>
 
@@ -47,18 +51,19 @@
                 <div class="col-md-6 brand-fields">
                     <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Brand</label>
                     <select name="brand" class="form-select bg-light border-0 py-3 rounded-4">
-                        <option value="AMUL" {% if order.brand == "AMUL" %}selected{% endif %}>Amul</option>
-                        <option value="VIKAS" {% if order.brand == "VIKAS" %}selected{% endif %}>Vikas</option>
-                        <option value="SARASWATI" {% if order.brand == "SARASWATI" %}selected{% endif %}>Saraswati</option>
-                        <option value="OTHER" {% if order.brand == "OTHER" %}selected{% endif %}>Other/Local</option>
+                        <option value="AMUL" {% if order.brand=="AMUL" %}selected{% endif %}>Amul</option>
+                        <option value="VIKAS" {% if order.brand=="VIKAS" %}selected{% endif %}>Vikas</option>
+                        <option value="SARASWATI" {% if order.brand=="SARASWATI" %}selected{% endif %}>Saraswati
+                        </option>
+                        <option value="OTHER" {% if order.brand=="OTHER" %}selected{% endif %}>Other/Local</option>
                     </select>
                 </div>
 
                 <div class="col-md-6 brand-fields">
                     <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Milk Type</label>
                     <select name="milk_type" class="form-select bg-light border-0 py-3 rounded-4">
-                        <option value="BUFFALO" {% if order.milk_type == "BUFFALO" %}selected{% endif %}>Buffalo</option>
-                        <option value="COW" {% if order.milk_type == "COW" %}selected{% endif %}>Cow</option>
+                        <option value="BUFFALO" {% if order.milk_type=="BUFFALO" %}selected{% endif %}>Buffalo</option>
+                        <option value="COW" {% if order.milk_type=="COW" %}selected{% endif %}>Cow</option>
                     </select>
                 </div>
 
@@ -66,40 +71,45 @@
                     <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Pack Size</label>
                     <select name="pack_size" class="form-select bg-light border-0 py-3 rounded-4">
                         <option value="">-- No Pack Size (Liters Mode) --</option>
-                        <option value="0.5" {% if order.pack_size == 0.5 %}selected{% endif %}>0.5 Ltr</option>
-                        <option value="1.0" {% if order.pack_size == 1.0 %}selected{% endif %}>1.0 Ltr</option>
-                        <option value="2.0" {% if order.pack_size == 2.0 %}selected{% endif %}>2.0 Ltr</option>
-                        <option value="5.0" {% if order.pack_size == 5.0 %}selected{% endif %}>5.0 Ltr</option>
+                        <option value="0.5" {% if order.pack_size==0.5 %}selected{% endif %}>0.5 Ltr</option>
+                        <option value="1.0" {% if order.pack_size==1.0 %}selected{% endif %}>1.0 Ltr</option>
+                        <option value="2.0" {% if order.pack_size==2.0 %}selected{% endif %}>2.0 Ltr</option>
+                        <option value="5.0" {% if order.pack_size==5.0 %}selected{% endif %}>5.0 Ltr</option>
                     </select>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Packets</label>
-                    <input type="number" name="packets" class="form-control bg-light border-0 py-3 rounded-4" value="{{ order.packets|default:'0' }}" min="0">
+                    <input type="number" name="packets" class="form-control bg-light border-0 py-3 rounded-4"
+                        value="{{ order.packets|default:'0' }}" min="0">
                 </div>
 
                 <!-- Non-Milk Generic Fields (Hidden for Milk) -->
                 <div class="col-md-4 other-fields d-none">
                     <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Quantity</label>
-                    <input type="number" step="0.01" name="quantity" class="form-control bg-light border-0 py-3 rounded-4 shadow-none" value="{{ order.quantity }}">
+                    <input type="number" step="0.01" name="quantity"
+                        class="form-control bg-light border-0 py-3 rounded-4 shadow-none" value="{{ order.quantity }}">
                 </div>
 
                 <div class="col-md-4 other-fields d-none">
                     <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Unit</label>
-                    <input type="text" name="unit" class="form-control bg-light border-0 py-3 rounded-4 shadow-none" value="{{ order.unit }}" placeholder="e.g. KG">
+                    <input type="text" name="unit" class="form-control bg-light border-0 py-3 rounded-4 shadow-none"
+                        value="{{ order.unit }}" placeholder="e.g. KG">
                 </div>
 
                 <div class="col-md-4 other-fields d-none">
                     <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Rate (₹)</label>
-                    <input type="number" step="0.01" name="rate" class="form-control bg-light border-0 py-3 rounded-4 shadow-none" value="{{ order.rate }}">
+                    <input type="number" step="0.01" name="rate"
+                        class="form-control bg-light border-0 py-3 rounded-4 shadow-none" value="{{ order.rate }}">
                 </div>
-                
+
                 <div class="col-12 mt-5">
                     <div class="d-flex gap-3">
                         <button class="btn-premium px-5 py-3 justify-content-center flex-grow-1">
                             Update Order <i class="bi bi-check2-circle ms-2"></i>
                         </button>
-                        <a href="{% url 'milk_order' %}?date={{ order.date|date:'Y-m-d' }}" class="btn btn-outline-secondary border-2 rounded-4 px-4 py-3 fw-600">Cancel</a>
+                        <a href="{% url 'milk_order' %}?date={{ order.date|date:'Y-m-d' }}"
+                            class="btn btn-outline-secondary border-2 rounded-4 px-4 py-3 fw-600">Cancel</a>
                     </div>
                 </div>
             </div>
@@ -108,10 +118,20 @@
 </div>
 
 <style>
-    .tracking-wider { letter-spacing: 0.05em; }
-    .fw-800 { font-weight: 800; }
-    .fw-700 { font-weight: 700; }
-    input, select {
+    .tracking-wider {
+        letter-spacing: 0.05em;
+    }
+
+    .fw-800 {
+        font-weight: 800;
+    }
+
+    .fw-700 {
+        font-weight: 700;
+    }
+
+    input,
+    select {
         width: 100%;
         padding: 0.75rem 1rem;
         border-radius: 0.75rem !important;
@@ -136,8 +156,8 @@
             otherFields.forEach(f => f.classList.remove('d-none'));
         }
     }
-    
+
     // Initial trigger
     window.addEventListener('DOMContentLoaded', toggleOrderFields);
 </script>
-{% endblock %}
+{% endblock %}

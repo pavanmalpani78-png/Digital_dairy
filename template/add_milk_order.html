@@ -22,23 +22,28 @@
             <div class="p-4 p-md-5">
                 <form method="POST" action="{% url 'add_milk_order' %}" id="addOrderForm">
                     {% csrf_token %}
-                    
+
                     <div class="row g-4">
                         <!-- Customer Selection -->
                         <div class="col-md-12">
-                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Customer</label>
-                            <select name="customer" class="form-select bg-light border-0 py-3 rounded-4 shadow-none" required>
+                            <label
+                                class="form-label fw-700 text-muted small text-uppercase tracking-wider">Customer</label>
+                            <select name="customer" class="form-select bg-light border-0 py-3 rounded-4 shadow-none"
+                                required>
                                 <option value="" disabled selected>-- Select Customer --</option>
                                 {% for c in customers %}
-                                    <option value="{{ c.id }}">{{ c.name }}</option>
+                                <option value="{{ c.id }}">{{ c.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
 
                         <!-- Product Type -->
                         <div class="col-md-6">
-                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Product Type</label>
-                            <select name="product_type" id="id_product_type" class="form-select bg-light border-0 py-3 rounded-4 shadow-none" required onchange="toggleOrderFields()">
+                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Product
+                                Type</label>
+                            <select name="product_type" id="id_product_type"
+                                class="form-select bg-light border-0 py-3 rounded-4 shadow-none" required
+                                onchange="toggleOrderFields()">
                                 <option value="MILK">Milk</option>
                                 <option value="CURD">Curd</option>
                                 <option value="PANEER">Paneer</option>
@@ -49,13 +54,17 @@
 
                         <!-- Date -->
                         <div class="col-md-6">
-                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Delivery Date</label>
-                            <input type="date" name="date" class="form-control bg-light border-0 py-3 rounded-4 shadow-none" value="{{ selected_date }}" required>
+                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Delivery
+                                Date</label>
+                            <input type="date" name="date"
+                                class="form-control bg-light border-0 py-3 rounded-4 shadow-none"
+                                value="{{ selected_date }}" required>
                         </div>
 
                         <!-- Milk Specific Fields -->
                         <div class="col-md-6 brand-fields">
-                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Brand</label>
+                            <label
+                                class="form-label fw-700 text-muted small text-uppercase tracking-wider">Brand</label>
                             <select name="brand" class="form-select bg-light border-0 py-3 rounded-4 shadow-none">
                                 <option value="AMUL">Amul</option>
                                 <option value="VIKAS">Vikas</option>
@@ -65,7 +74,8 @@
                         </div>
 
                         <div class="col-md-6 brand-fields">
-                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Milk Type</label>
+                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Milk
+                                Type</label>
                             <select name="milk_type" class="form-select bg-light border-0 py-3 rounded-4 shadow-none">
                                 <option value="BUFFALO">Buffalo</option>
                                 <option value="COW">Cow</option>
@@ -74,7 +84,8 @@
 
                         <!-- Packet Options (All Products) -->
                         <div class="col-md-6">
-                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Pack Size (Liters)</label>
+                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Pack Size
+                                (Liters)</label>
                             <select name="pack_size" class="form-select bg-light border-0 py-3 rounded-4 shadow-none">
                                 <option value="">-- No Pack Size (Liters Mode) --</option>
                                 <option value="0.5">0.5 Ltr</option>
@@ -85,33 +96,42 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Packets</label>
-                            <input type="number" name="packets" class="form-control bg-light border-0 py-3 rounded-4 shadow-none" value="0" min="0">
+                            <label
+                                class="form-label fw-700 text-muted small text-uppercase tracking-wider">Packets</label>
+                            <input type="number" name="packets"
+                                class="form-control bg-light border-0 py-3 rounded-4 shadow-none" value="0" min="0">
                         </div>
 
                         <!-- Non-Milk Generic Fields (Hidden for Milk) -->
                         <div class="col-md-4 other-fields d-none">
-                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Quantity</label>
-                            <input type="number" step="0.01" name="quantity" class="form-control bg-light border-0 py-3 rounded-4 shadow-none" value="0">
+                            <label
+                                class="form-label fw-700 text-muted small text-uppercase tracking-wider">Quantity</label>
+                            <input type="number" step="0.01" name="quantity"
+                                class="form-control bg-light border-0 py-3 rounded-4 shadow-none" value="0">
                         </div>
 
                         <div class="col-md-4 other-fields d-none">
                             <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Unit</label>
-                            <input type="text" name="unit" class="form-control bg-light border-0 py-3 rounded-4 shadow-none" placeholder="e.g. KG">
+                            <input type="text" name="unit"
+                                class="form-control bg-light border-0 py-3 rounded-4 shadow-none" placeholder="e.g. KG">
                         </div>
 
                         <div class="col-md-4 other-fields d-none">
-                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Rate (₹)</label>
-                            <input type="number" step="0.01" name="rate" class="form-control bg-light border-0 py-3 rounded-4 shadow-none" value="0">
+                            <label class="form-label fw-700 text-muted small text-uppercase tracking-wider">Rate
+                                (₹)</label>
+                            <input type="number" step="0.01" name="rate"
+                                class="form-control bg-light border-0 py-3 rounded-4 shadow-none" value="0">
                         </div>
 
                         <!-- Action Buttons -->
                         <div class="col-12 mt-4 pt-4 border-top">
                             <div class="d-flex gap-3">
-                                <button type="button" onclick="window.history.back()" class="btn btn-light rounded-pill px-5 py-3 fw-600 text-muted border">
+                                <button type="button" onclick="window.history.back()"
+                                    class="btn btn-light rounded-pill px-5 py-3 fw-600 text-muted border">
                                     Cancel
                                 </button>
-                                <button type="submit" class="btn-premium flex-grow-1 py-3 justify-content-center border-0 shadow-lg">
+                                <button type="submit"
+                                    class="btn-premium flex-grow-1 py-3 justify-content-center border-0 shadow-lg">
                                     Save Delivery Record <i class="bi bi-check2-circle ms-2"></i>
                                 </button>
                             </div>
@@ -138,16 +158,27 @@
             otherFields.forEach(f => f.classList.remove('d-none'));
         }
     }
-    
+
     // Initial trigger
     window.addEventListener('DOMContentLoaded', toggleOrderFields);
 </script>
 {% endblock %}
 
 <style>
-    .tracking-wider { letter-spacing: 0.08em; }
-    .fw-800 { font-weight: 800; }
-    .fw-700 { font-weight: 700; }
-    .fw-600 { font-weight: 600; }
+    .tracking-wider {
+        letter-spacing: 0.08em;
+    }
+
+    .fw-800 {
+        font-weight: 800;
+    }
+
+    .fw-700 {
+        font-weight: 700;
+    }
+
+    .fw-600 {
+        font-weight: 600;
+    }
 </style>
 {% endblock %}

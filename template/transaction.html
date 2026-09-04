@@ -4,14 +4,14 @@
 {% block title %}Payments & Transactions | Milk Khata Digital Dairy{% endblock %}
 
 {% block content %}
-<div class="glass-card overflow-hidden">
+<div class="card-enterprise overflow-hidden mb-5">
     <!-- Header -->
     <div class="bg-primary p-4 text-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
         <div>
-            <h3 class="fw-800 mb-1 text-white">Payments</h3>
+            <h3 class="fw-bold mb-1 text-white">Payments</h3>
             <p class="mb-0 opacity-75 small">Track customer payments and collection status</p>
         </div>
-        <a href="{% url 'add_transaction' %}" class="btn btn-light rounded-pill px-4 fw-600">
+        <a href="{% url 'add_transaction' %}" class="btn btn-light px-4 fw-600 text-primary shadow-sm">
             <i class="bi bi-plus-circle-fill me-2"></i> Add Payment
         </a>
     </div>
@@ -20,15 +20,17 @@
     <div class="p-4">
         <div class="row align-items-center g-3 mb-4">
             <div class="col-md-6">
-                <div class="muted small text-uppercase tracking-wider fw-700">Total Transactions</div>
-                <div class="h4 fw-800 mb-0"><span class="badge-soft">{{ transactions|length }}</span> Records Found</div>
+                <div class="text-muted small text-uppercase tracking-wider fw-600">Total Transactions</div>
+                <div class="h4 fw-bold mb-0 text-dark"><span class="badge-soft">{{ transactions|length }}</span> Records Found
+                </div>
             </div>
             <div class="col-md-6">
                 <div class="input-group">
-                    <span class="input-group-text bg-light border-0 rounded-start-4 px-3 text-muted">
+                    <span class="input-group-text bg-light border-0 px-3 text-muted">
                         <i class="bi bi-search"></i>
                     </span>
-                    <input id="searchInput" type="text" class="form-control bg-light border-0 py-2 rounded-end-4" placeholder="Search by name or amount...">
+                    <input id="searchInput" type="text" class="form-control bg-light border-0 py-2"
+                        placeholder="Search by name or amount...">
                 </div>
             </div>
         </div>
@@ -37,20 +39,20 @@
             <table class="table table-hover align-middle mb-0" id="transactionTable">
                 <thead class="bg-light">
                     <tr>
-                        <th class="border-0 rounded-start-3 px-4 py-3 small fw-700 text-muted text-uppercase tracking-wider">Customer</th>
-                        <th class="border-0 py-3 small fw-700 text-muted text-uppercase tracking-wider">Date</th>
-                        <th class="border-0 py-3 small fw-700 text-muted text-uppercase tracking-wider text-center">Total (₹)</th>
-                        <th class="border-0 py-3 small fw-700 text-muted text-uppercase tracking-wider">Note</th>
-                        <th class="border-0 py-3 small fw-700 text-muted text-uppercase tracking-wider text-center">Status</th>
-                        <th class="border-0 rounded-end-3 py-3 small fw-700 text-muted text-uppercase tracking-wider text-end px-4">Actions</th>
+                        <th class="border-0 px-4 py-3 small fw-600 text-muted text-uppercase tracking-wider">Customer</th>
+                        <th class="border-0 py-3 small fw-600 text-muted text-uppercase tracking-wider">Date</th>
+                        <th class="border-0 py-3 small fw-600 text-muted text-uppercase tracking-wider text-center">Total (₹)</th>
+                        <th class="border-0 py-3 small fw-600 text-muted text-uppercase tracking-wider">Note</th>
+                        <th class="border-0 py-3 small fw-600 text-muted text-uppercase tracking-wider text-center">Status</th>
+                        <th class="border-0 py-3 small fw-600 text-muted text-uppercase tracking-wider text-end px-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="border-top-0">
                     {% for t in transactions %}
-                    <tr class="border-bottom border-light">
+                    <tr class="border-bottom">
                         {# Customer + product info #}
                         <td class="px-4 py-3">
-                            <div class="fw-700">{{ t.customer.name }}</div>
+                            <div class="fw-600 text-dark">{{ t.customer.name }}</div>
                             <div class="text-muted small">{{ t.product_type }} · {{ t.qty }} {{ t.unit }}</div>
                         </td>
 
@@ -58,27 +60,27 @@
                         <td class="py-3 text-muted small">{{ t.date }}</td>
 
                         {# Amount #}
-                        <td class="py-3 text-center fw-800 text-success">₹{{ t.amount }}</td>
+                        <td class="py-3 text-center fw-bold text-success">₹{{ t.amount }}</td>
 
                         {# Note — show "Empty" if blank #}
                         <td class="py-3 small" style="max-width: 180px;">
                             {% if t.note %}
-                                <span class="text-muted">{{ t.note }}</span>
+                            <span class="text-muted">{{ t.note }}</span>
                             {% else %}
-                                <span class="text-muted fst-italic opacity-50">Empty</span>
+                            <span class="text-muted fst-italic opacity-50">Empty</span>
                             {% endif %}
                         </td>
 
                         {# Status badge #}
                         <td class="py-3 text-center">
                             {% if t.payment_status == 'PAID' %}
-                                <span class="badge bg-success-subtle text-success border-0 rounded-pill px-3 py-2 small fw-700">
-                                    <i class="bi bi-check-circle-fill me-1"></i>PAID
-                                </span>
+                            <span class="badge bg-success-subtle text-success border-0 px-3 py-2 small fw-600">
+                                <i class="bi bi-check-circle-fill me-1"></i>PAID
+                            </span>
                             {% else %}
-                                <span class="badge bg-danger-subtle text-danger border-0 rounded-pill px-3 py-2 small fw-700">
-                                    <i class="bi bi-exclamation-circle-fill me-1"></i>UNPAID
-                                </span>
+                            <span class="badge bg-danger-subtle text-danger border-0 px-3 py-2 small fw-600">
+                                <i class="bi bi-exclamation-circle-fill me-1"></i>UNPAID
+                            </span>
                             {% endif %}
                         </td>
 
@@ -86,7 +88,7 @@
                         <td class="py-3 text-end px-4">
                             <div class="d-flex gap-2 justify-content-end align-items-center flex-wrap">
                                 {# Amount Breakdown toggle only #}
-                                <button class="btn btn-sm btn-outline-primary border-2 rounded-pill px-3 fw-600 py-1"
+                                <button class="btn btn-sm btn-outline-primary px-3 fw-500 py-1"
                                     onclick="toggleAmountBox({{ t.id }})" type="button">
                                     <i class="bi bi-cash-coin me-1"></i>₹ Info
                                 </button>
@@ -94,35 +96,35 @@
 
                             {# Collapsible amount panel #}
                             <div id="amtBox-{{ t.id }}" class="mt-2 p-3 rounded-3 text-start d-none"
-                                 style="background:#f0fdf4; border:1px solid #bbf7d0; font-size:0.85rem; min-width:180px;">
+                                style="background:#f0fdf4; border:1px solid #bbf7d0; font-size:0.85rem; min-width:180px;">
                                 <div class="mb-1">
                                     <span class="text-muted">Total Bill:</span>
                                     <strong class="float-end">₹{{ t.amount }}</strong>
                                 </div>
                                 {% if t.payment_status == 'PAID' %}
-                                    <div class="mb-1">
-                                        <span class="text-muted">Amount Paid:</span>
-                                        <strong class="float-end text-success">₹{{ t.amount }}</strong>
-                                    </div>
-                                    <div>
-                                        <span class="text-muted">Remaining:</span>
-                                        <strong class="float-end text-success">₹0</strong>
-                                    </div>
-                                    <div class="mt-2 text-success fw-700 small">
-                                        <i class="bi bi-check-circle-fill me-1"></i>Fully Settled ✓
-                                    </div>
+                                <div class="mb-1">
+                                    <span class="text-muted">Amount Paid:</span>
+                                    <strong class="float-end text-success">₹{{ t.amount }}</strong>
+                                </div>
+                                <div>
+                                    <span class="text-muted">Remaining:</span>
+                                    <strong class="float-end text-success">₹0</strong>
+                                </div>
+                                <div class="mt-2 text-success fw-700 small">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Fully Settled ✓
+                                </div>
                                 {% else %}
-                                    <div class="mb-1">
-                                        <span class="text-muted">Amount Paid:</span>
-                                        <strong class="float-end text-success">₹0</strong>
-                                    </div>
-                                    <div>
-                                        <span class="text-muted">Remaining:</span>
-                                        <strong class="float-end text-danger">₹{{ t.amount }}</strong>
-                                    </div>
-                                    <div class="mt-2 text-danger fw-700 small">
-                                        <i class="bi bi-exclamation-circle-fill me-1"></i>Payment Pending
-                                    </div>
+                                <div class="mb-1">
+                                    <span class="text-muted">Amount Paid:</span>
+                                    <strong class="float-end text-success">₹0</strong>
+                                </div>
+                                <div>
+                                    <span class="text-muted">Remaining:</span>
+                                    <strong class="float-end text-danger">₹{{ t.amount }}</strong>
+                                </div>
+                                <div class="mt-2 text-danger fw-700 small">
+                                    <i class="bi bi-exclamation-circle-fill me-1"></i>Payment Pending
+                                </div>
                                 {% endif %}
                             </div>
                         </td>
@@ -143,16 +145,20 @@
 
 {% block extra_js %}
 <script>
-    const searchInput = document.getElementById("searchInput");
-    const table = document.getElementById("transactionTable");
-    const rows = table.querySelectorAll("tbody tr");
-
-    searchInput.addEventListener("keyup", function () {
-        const q = this.value.toLowerCase().trim();
-        rows.forEach(row => {
-            const text = row.innerText.toLowerCase();
-            row.style.display = text.includes(q) ? "" : "none";
-        });
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchInput = document.getElementById("searchInput");
+        const table = document.getElementById("transactionTable");
+        
+        if (searchInput && table) {
+            const rows = table.querySelectorAll("tbody tr");
+            searchInput.addEventListener("keyup", function () {
+                const q = this.value.toLowerCase().trim();
+                rows.forEach(row => {
+                    const text = row.innerText.toLowerCase();
+                    row.style.display = text.includes(q) ? "" : "none";
+                });
+            });
+        }
     });
 
     function toggleAmountBox(id) {
@@ -163,11 +169,28 @@
 {% endblock %}
 
 <style>
-    .tracking-wider { letter-spacing: 0.05em; }
-    .fw-800 { font-weight: 800; }
-    .fw-700 { font-weight: 700; }
-    .fw-600 { font-weight: 600; }
-    .bg-success-subtle { background-color: #f0fdf4; }
-    .bg-danger-subtle  { background-color: #fef2f2; }
+    .tracking-wider {
+        letter-spacing: 0.05em;
+    }
+
+    .fw-800 {
+        font-weight: 800;
+    }
+
+    .fw-700 {
+        font-weight: 700;
+    }
+
+    .fw-600 {
+        font-weight: 600;
+    }
+
+    .bg-success-subtle {
+        background-color: #f0fdf4;
+    }
+
+    .bg-danger-subtle {
+        background-color: #fef2f2;
+    }
 </style>
 {% endblock %}

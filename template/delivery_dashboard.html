@@ -4,16 +4,16 @@
 {% block title %}Delivery Management | Milk Khata Digital Dairy{% endblock %}
 
 {% block content %}
-<div class="glass-card overflow-hidden">
+<div class="card-enterprise overflow-hidden mb-5">
     <!-- Header -->
     <div class="bg-primary p-4 text-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
         <div>
-            <h3 class="fw-800 mb-1 text-white">Deliveries</h3>
+            <h3 class="fw-bold mb-1 text-white">Deliveries</h3>
             <p class="mb-0 opacity-75 small">Assign drivers and track daily delivery status</p>
         </div>
         <div class="d-flex align-items-center gap-3">
             <form method="GET" class="d-flex gap-2">
-                <input type="date" name="date" class="form-control border-0 rounded-pill px-3 shadow-sm py-2" value="{{ selected_date }}" onchange="this.form.submit()">
+                <input type="date" name="date" class="form-control border-0 rounded-2 px-3 shadow-sm py-2 text-dark" value="{{ selected_date }}" onchange="this.form.submit()">
             </form>
         </div>
     </div>
@@ -22,27 +22,29 @@
     <div class="p-4">
         <div class="row align-items-center g-3 mb-4">
             <div class="col-md-6">
-                <div class="muted small text-uppercase tracking-wider fw-700">Total Delivery Tasks</div>
-                <div class="h4 fw-800 mb-0"><span class="badge-soft">{{ orders|length }}</span> Deliveries Scheduled</div>
+                <div class="text-muted small text-uppercase tracking-wider fw-600">Total Delivery Tasks</div>
+                <div class="h4 fw-bold mb-0 text-dark"><span class="badge-soft">{{ orders|length }}</span> Deliveries Scheduled</div>
             </div>
         </div>
+
+
 
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0" id="deliveryTable">
                 <thead class="bg-light">
                     <tr>
-                        <th class="border-0 rounded-start-3 px-4 py-3 small fw-700 text-muted text-uppercase tracking-wider">Customer</th>
-                        <th class="border-0 py-3 small fw-700 text-muted text-uppercase tracking-wider">Items</th>
-                        <th class="border-0 py-3 small fw-700 text-muted text-uppercase tracking-wider">Assigned Driver</th>
-                        <th class="border-0 py-3 small fw-700 text-muted text-uppercase tracking-wider text-center">Status</th>
-                        <th class="border-0 rounded-end-3 py-3 small fw-700 text-muted text-uppercase tracking-wider text-end px-4">Actions</th>
+                        <th class="border-0 px-4 py-3 small fw-600 text-muted text-uppercase tracking-wider">Customer</th>
+                        <th class="border-0 py-3 small fw-600 text-muted text-uppercase tracking-wider">Items</th>
+                        <th class="border-0 py-3 small fw-600 text-muted text-uppercase tracking-wider">Assigned Driver</th>
+                        <th class="border-0 py-3 small fw-600 text-muted text-uppercase tracking-wider text-center">Status</th>
+                        <th class="border-0 py-3 small fw-600 text-muted text-uppercase tracking-wider text-end px-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="border-top-0">
                     {% for o in orders %}
-                    <tr class="border-bottom border-light">
+                    <tr class="border-bottom">
                         <td class="px-4 py-3">
-                            <div class="fw-700">{{ o.customer.name }}</div>
+                            <div class="fw-600 text-dark">{{ o.customer.name }}</div>
                             <div class="text-muted small" style="max-width: 200px;">{{ o.customer.address|default:"No address" }}</div>
                         </td>
                         <td class="py-3">
@@ -62,7 +64,7 @@
                             <input type="hidden" name="order_id" value="{{ o.id }}">
                             <td class="py-3">
                                 {% if o.delivery_status == "PENDING" %}
-                                    <select name="delivery_boy" class="form-select bg-light border-0 py-2 rounded-3 small fw-600">
+                                    <select name="delivery_boy" class="form-select bg-light border-0 py-2 rounded-2 small fw-500">
                                         <option value="">-- Choose Boy --</option>
                                         {% for b in delivery_boys %}
                                         <option value="{{ b.id }}">{{ b.name }}</option>
@@ -74,38 +76,32 @@
                                             <i class="bi bi-person-badge"></i>
                                         </div>
                                         {% if o.delivery_boy %}
-                                            <span class="fw-600 small">{{ o.delivery_boy.name }}</span>
+                                            <span class="fw-500 small text-dark">{{ o.delivery_boy.name }}</span>
                                         {% else %}
-                                            <span class="fw-600 small text-muted fst-italic">Driver removed</span>
+                                            <span class="fw-500 small text-muted fst-italic">Driver removed</span>
                                         {% endif %}
                                     </div>
                                 {% endif %}
                             </td>
                             <td class="py-3 text-center">
                                 {% if o.delivery_status == "PENDING" %}
-                                <span class="badge bg-warning-subtle text-warning border-0 rounded-pill px-3 py-2 small fw-700">PENDING</span>
+                                <span class="badge bg-warning-subtle text-warning border-0 px-3 py-2 small fw-600">PENDING</span>
                                 {% elif o.delivery_status == "OUT_FOR_DELIVERY" %}
-                                <span class="badge bg-primary-subtle text-primary border-0 rounded-pill px-3 py-2 small fw-700">IN TRANSIT</span>
+                                <span class="badge bg-primary-subtle text-primary border-0 px-3 py-2 small fw-600">IN TRANSIT</span>
                                 {% else %}
-                                <span class="badge bg-success-subtle text-success border-0 rounded-pill px-3 py-2 small fw-700">DELIVERED</span>
+                                <span class="badge bg-success-subtle text-success border-0 px-3 py-2 small fw-600">DELIVERED</span>
                                 {% endif %}
                             </td>
                             <td class="py-3 text-end px-4">
                                 <div class="d-flex gap-2 justify-content-end align-items-center flex-wrap">
                                     {% if o.delivery_status == "PENDING" %}
-                                        <button type="submit" name="action" value="assign" class="btn btn-sm btn-primary rounded-pill px-4 fw-700 py-2">Assign &amp; Start</button>
+                                        <button type="submit" name="action" value="assign" class="btn btn-sm btn-primary px-3 fw-500">Assign &amp; Start</button>
                                     {% elif o.delivery_status == "OUT_FOR_DELIVERY" %}
-                                        <button type="submit" name="action" value="mark_delivered_paid" class="btn btn-sm btn-success rounded-pill px-4 fw-700 py-2">Done (Paid)</button>
-                                        <button type="submit" name="action" value="mark_delivered_unpaid" class="btn btn-sm btn-outline-danger border-2 rounded-pill px-3 fw-600 py-2">Done (Unpaid)</button>
-                                        <button type="submit" name="action" value="cancel_assignment"
-                                            class="btn btn-sm btn-outline-secondary border-2 rounded-pill px-3 fw-600 py-2"
-                                            onclick="return confirm('Cancel this assignment and reset to Pending?')"
-                                        ><i class="bi bi-x-circle me-1"></i>Cancel</button>
+                                        <button type="submit" name="action" value="mark_delivered_paid" class="btn btn-sm btn-success px-3 fw-500">Done (Paid)</button>
+                                        <button type="submit" name="action" value="mark_delivered_unpaid" class="btn btn-sm btn-outline-danger px-3 fw-500">Done (Unpaid)</button>
+                                        <button type="submit" name="action" value="cancel_assignment" class="btn btn-sm btn-outline-secondary px-3 fw-500" onclick="return confirm('Cancel this assignment and reset to Pending?')"><i class="bi bi-x-circle me-1"></i>Cancel</button>
                                     {% elif o.delivery_status == "DELIVERED" %}
-                                        <button type="submit" name="action" value="cancel_assignment"
-                                            class="btn btn-sm btn-outline-warning border-2 rounded-pill px-3 fw-600 py-2"
-                                            onclick="return confirm('Reset this delivered order back to Pending?')"
-                                        ><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
+                                        <button type="submit" name="action" value="cancel_assignment" class="btn btn-sm btn-outline-warning px-3 fw-500" onclick="return confirm('Reset this delivered order back to Pending?')"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>
                                     {% endif %}
                                 </div>
                             </td>
@@ -134,4 +130,6 @@
     .bg-success-subtle { background-color: #f0fdf4; }
     .bg-warning-subtle { background-color: #fffbeb; }
 </style>
+
+
 {% endblock %}

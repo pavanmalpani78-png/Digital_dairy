@@ -1,115 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Orders | Digital Dairy</title>
-    <link rel="stylesheet" href="/static/css/customer_style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
-</head>
-<body style="background-color: #f8fafc;">
-    <nav class="nav">
-        <div class="container nav-inner">
-            <a href="{% url 'customer_dashboard' %}" class="logo">
-                <i class="fas fa-droplet" style="color: var(--primary);"></i> DIGITAL DAIRY
-            </a>
-            <ul class="nav-links">
+{% extends 'customer_panel/customer_base.html' %}
 
-                <li><a href="{% url 'customer_dashboard' %}">Dashboard</a></li>
-                <li><a href="{% url 'customer_my_orders' %}" style="color: var(--primary);">Orders</a></li>
-                <li><a href="{% url 'customer_logout' %}" class="btn-primary" style="padding: 8px 16px; background: #ef4444; font-size: 0.8rem;">Logout</a></li>
-            </ul>
-        </div>
-    </nav>
+{% block title %}My Orders | Customer Portal{% endblock %}
 
-    <main class="container" style="margin-top: 40px; margin-bottom: 80px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-            <h1 style="font-weight: 800; margin: 0;">Order History</h1>
-            <a href="{% url 'customer_place_order' %}" class="btn-primary">
-                <i class="fas fa-plus"></i> New Order
-            </a>
-        </div>
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-700 m-0 text-dark">Order History</h2>
+        <a href="{% url 'customer_place_order' %}" class="btn btn-primary fw-600 shadow-sm">
+            <i class="bi bi-plus-lg me-1"></i> New Order
+        </a>
+    </div>
 
-        {% if orders %}
-            <div style="display: grid; gap: 20px;">
-                {% for order in orders %}
-                    <div class="card" style="padding: 24px; border-radius: 20px;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
-                            <div>
-                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                                    <span style="font-weight: 800; font-size: 1.1rem;">Order #{{ order.id }}</span>
-                                    <span style="color: var(--text-meta); font-size: 0.9rem;">• {{ order.date }}</span>
-                                </div>
-                                <div style="font-weight: 600; color: var(--text-main); margin-bottom: 12px;">
-                                    {% if order.product_type == 'MILK' %}
-                                        {{ order.packets }} x {{ order.brand }} {{ order.milk_type }} ({{ order.pack_size }})
-                                    {% else %}
-                                        {{ order.quantity }} {{ order.unit }} of {{ order.product_type }}
-                                    {% endif %}
-                                </div>
-                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                    <!-- Approval Status -->
-                                    {% if order.status == 'PENDING' %}
-                                        <span style="background: #fffbeb; color: #f59e0b; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; border: 1px solid #fef3c7;">
-                                            <i class="fas fa-clock"></i> PENDING APPROVAL
-                                        </span>
-                                    {% elif order.status == 'APPROVED' %}
-                                        <span style="background: #f0fdf4; color: #16a34a; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; border: 1px solid #dcfce7;">
-                                            <i class="fas fa-check-circle"></i> CONFIRMED
-                                        </span>
-                                    {% elif order.status == 'REJECTED' %}
-                                        <span style="background: #fef2f2; color: #dc2626; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; border: 1px solid #fee2e2;">
-                                            <i class="fas fa-times-circle"></i> REJECTED
-                                        </span>
-                                    {% endif %}
-
-                                    <!-- Delivery Status -->
-                                    {% if order.status == 'APPROVED' %}
-                                        {% if order.delivery_status == 'PENDING' %}
-                                            <span style="background: #eff6ff; color: #2563eb; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; border: 1px solid #dbeafe;">
-                                                <i class="fas fa-box"></i> PACKING
-                                            </span>
-                                        {% elif order.delivery_status == 'OUT_FOR_DELIVERY' %}
-                                            <span style="background: #f5f3ff; color: #7c3aed; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; border: 1px solid #ede9fe;">
-                                                <i class="fas fa-truck"></i> OUT FOR DELIVERY
-                                            </span>
-                                        {% elif order.delivery_status == 'DELIVERED' %}
-                                            <span style="background: #ecfdf5; color: #059669; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; border: 1px solid #d1fae5;">
-                                                <i class="fas fa-home"></i> DELIVERED
-                                            </span>
-                                        {% endif %}
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <div style="text-align: right;">
-                                <div style="font-weight: 900; font-size: 1.4rem; color: var(--primary); margin-bottom: 12px;">₹ {{ order.total }}</div>
-                                <form action="{% url 'customer_reorder' order.id %}" method="POST">
-                                    {% csrf_token %}
-                                    <button type="submit" style="background: white; border: 2px solid #e2e8f0; padding: 8px 16px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;">
-                                        <i class="fas fa-redo-alt" style="margin-right: 5px; color: var(--primary);"></i> REORDER
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
+    {% if orders %}
+    <div class="d-flex flex-column gap-3">
+        {% for order in orders %}
+        <div class="card-enterprise p-4">
+            <div class="row align-items-center">
+                <div class="col-md-7 mb-3 mb-md-0">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <h5 class="fw-700 m-0 text-dark">Order #{{ order.id }}</h5>
+                        <span class="text-muted small">&bull; {{ order.date }}</span>
                     </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div style="text-align: center; padding: 80px 0; background: white; border-radius: 30px;">
-                <div style="font-size: 4rem; color: #e2e8f0; margin-bottom: 20px;"><i class="fas fa-shopping-basket"></i></div>
-                <h3 style="font-weight: 700; color: var(--text-meta);">No orders found yet</h3>
-                <p style="color: var(--text-meta); margin-bottom: 30px;">Experience fresh dairy by placing your first order!</p>
-                <a href="{% url 'customer_place_order' %}" class="btn-primary">Order Now</a>
-            </div>
-        {% endif %}
-    </main>
+                    
+                    <div class="fw-600 text-dark mb-3">
+                        {% if order.product_type == 'MILK' %}
+                            {{ order.packets }} x {{ order.brand }} {{ order.milk_type }} ({{ order.pack_size }})
+                        {% else %}
+                            {{ order.quantity }} {{ order.unit }} of {{ order.product_type }}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex flex-wrap gap-2">
+                        <!-- Approval Status -->
+                        {% if order.status == 'PENDING' %}
+                            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-600 border border-warning">
+                                <i class="bi bi-clock-history me-1"></i> PENDING APPROVAL
+                            </span>
+                        {% elif order.status == 'APPROVED' %}
+                            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill fw-600 border border-success border-opacity-25">
+                                <i class="bi bi-check-circle-fill me-1"></i> CONFIRMED
+                            </span>
+                        {% elif order.status == 'REJECTED' %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill fw-600 border border-danger border-opacity-25">
+                                <i class="bi bi-x-circle-fill me-1"></i> REJECTED
+                            </span>
+                        {% endif %}
 
-    <footer style="margin-top: 0;">
-        <div class="container">
-            <p style="font-size: 0.9rem;">&copy; 2026 Digital Dairy Management System.</p>
+                        <!-- Delivery Status -->
+                        {% if order.status == 'APPROVED' %}
+                            {% if order.delivery_status == 'PENDING' %}
+                                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-600 border border-primary border-opacity-25">
+                                    <i class="bi bi-box-seam me-1"></i> PACKING
+                                </span>
+                            {% elif order.delivery_status == 'OUT_FOR_DELIVERY' %}
+                                <span class="badge text-bg-info px-3 py-2 rounded-pill fw-600 text-white border border-info">
+                                    <i class="bi bi-truck me-1"></i> OUT FOR DELIVERY
+                                </span>
+                            {% elif order.delivery_status == 'DELIVERED' %}
+                                <span class="badge bg-success text-white px-3 py-2 rounded-pill fw-600 border border-success">
+                                    <i class="bi bi-house-check me-1"></i> DELIVERED
+                                </span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-md-5 text-md-end">
+                    <div class="fw-bold fs-3 text-primary mb-3">₹ {{ order.total }}</div>
+                    <form action="{% url 'customer_reorder' order.id %}" method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-primary fw-600 px-4 rounded-pill">
+                            <i class="bi bi-arrow-repeat me-1"></i> REORDER
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
-    </footer>
-</body>
-</html>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card-enterprise text-center p-5 mt-4">
+        <div class="display-1 text-muted opacity-25 mb-3"><i class="bi bi-basket"></i></div>
+        <h3 class="fw-700 text-muted mb-2">No orders found yet</h3>
+        <p class="text-muted mb-4">Experience fresh dairy by placing your first order!</p>
+        <a href="{% url 'customer_place_order' %}" class="btn btn-primary px-4 fw-600">Order Now</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

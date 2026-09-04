@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Run Sheet | Milk Khata</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { background: #f5f7fb; font-family: 'Inter', sans-serif; }
+        .app-header { background: #0d6efd; color: white; padding: 15px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .order-card { border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 12px; }
+        .status-badge { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; padding: 5px 8px; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <div class="app-header d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-0 fw-bold"><i class="bi bi-truck me-2"></i>Run Sheet</h5>
+            <small class="opacity-75">{{ today|date:"d M Y" }}</small>
+        </div>
+        <div class="text-end">
+            <h6 class="mb-0 fw-bold">{{ driver.name }}</h6>
+            <small class="opacity-75">{{ orders|length }} Orders</small>
+        </div>
+    </div>
+
+    <div class="container py-3">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% for order in orders %}
+        <div class="card order-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="fw-bold text-dark mb-0">{{ order.customer.name }}</h5>
+                    {% if order.delivery_status == 'DELIVERED' %}
+                        <span class="status-badge bg-success text-white">DELIVERED</span>
+                    {% else %}
+                        <span class="status-badge bg-warning text-dark">PENDING</span>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <div class="text-muted small"><i class="bi bi-geo-alt-fill me-1"></i> {{ order.customer.address|default:"No address" }}</div>
+                    <div class="text-muted small"><i class="bi bi-telephone-fill me-1"></i> {{ order.customer.phone|default:"No phone" }}</div>
+                </div>
+
+                <div class="bg-light p-2 rounded-3 mb-3 d-flex justify-content-between align-items-center border">
+                    <div>
+                        <div class="small fw-bold text-primary">{{ order.product_type }}</div>
+                        <div class="small text-muted">
+                            {% if order.product_type == 'MILK' %}
+                                {{ order.packets }} pkt x {{ order.pack_size }}L
+                            {% else %}
+                                {{ order.quantity }} {{ order.unit }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div class="small text-muted">To Collect</div>
+                        <div class="fw-bold fs-5">₹{{ order.total }}</div>
+                    </div>
+                </div>
+
+                {% if order.delivery_status != 'DELIVERED' %}
+                <div class="d-flex gap-2">
+                    <form action="{% url 'mark_delivered' driver.access_token order.id %}" method="post" class="flex-grow-1">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="mark_delivered_unpaid">
+                        <button type="submit" class="btn btn-outline-primary w-100 fw-bold" onclick="return confirm('Mark as delivered (UNPAID)?');">
+                            Delivered (Unpaid)
+                        </button>
+                    </form>
+                    <form action="{% url 'mark_delivered' driver.access_token order.id %}" method="post" class="flex-grow-1">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="mark_delivered_paid">
+                        <button type="submit" class="btn btn-success w-100 fw-bold shadow-sm" onclick="return confirm('Confirm payment received?');">
+                            <i class="bi bi-cash me-1"></i> Paid
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <div class="text-center text-success fw-bold p-2 bg-success-subtle rounded-3">
+                    <i class="bi bi-check-circle-fill me-2"></i> Delivery Completed
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5">
+            <i class="bi bi-box-seam text-muted" style="font-size: 3rem;"></i>
+            <h5 class="fw-bold mt-3 text-muted">No Orders Today</h5>
+            <p class="text-muted small">You have no deliveries assigned for today.</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

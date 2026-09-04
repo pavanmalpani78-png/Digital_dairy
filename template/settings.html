@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Settings | Milk Khata Digital Dairy{% endblock %}
+
+{% block content %}
+<div class="glass-card overflow-hidden">
+    <!-- Header -->
+    <div class="bg-primary p-4 text-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+        <div>
+            <h3 class="fw-800 mb-1 text-white">Settings</h3>
+            <p class="mb-0 opacity-75 small">Manage automated features and integrations</p>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="p-4 p-md-5">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <div class="col-lg-8 col-xl-6">
+                <form method="post" action="{% url 'settings_page' %}">
+                    {% csrf_token %}
+                    
+                    <h5 class="fw-700 text-primary mb-4"><i class="bi bi-whatsapp me-2"></i> WhatsApp Automation (UltraMsg)</h5>
+                    <p class="text-muted small mb-4">
+                        Enable automatic WhatsApp messages when a customer is added or a bill is generated. 
+                        Sign up for a free trial at <a href="https://ultramsg.com/" target="_blank">UltraMsg</a> to get your Instance ID and Token.
+                    </p>
+
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" role="switch" id="is_whatsapp_enabled" name="is_whatsapp_enabled" {% if settings.is_whatsapp_enabled %}checked{% endif %}>
+                        <label class="form-check-label fw-600" for="is_whatsapp_enabled">Enable WhatsApp Automation</label>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-600 small text-uppercase tracking-wider text-muted">Instance ID</label>
+                        <input type="text" class="form-control bg-light border-0 py-3 rounded-4" name="whatsapp_instance_id" value="{{ settings.whatsapp_instance_id|default_if_none:'' }}" placeholder="e.g. instance12345">
+                    </div>
+                    
+                    <div class="mb-5">
+                        <label class="form-label fw-600 small text-uppercase tracking-wider text-muted">Access Token</label>
+                        <input type="text" class="form-control bg-light border-0 py-3 rounded-4" name="whatsapp_token" value="{{ settings.whatsapp_token|default_if_none:'' }}" placeholder="e.g. abcdef1234567890">
+                    </div>
+
+                    <hr class="mb-4">
+
+                    <h5 class="fw-700 text-primary mb-4"><i class="bi bi-qr-code-scan me-2"></i> Payment Settings (UPI)</h5>
+                    <p class="text-muted small mb-4">
+                        Enter your UPI ID (e.g., name@okicici) to automatically generate a scan-to-pay QR code on customer bills.
+                    </p>
+                    
+                    <div class="mb-5">
+                        <label class="form-label fw-600 small text-uppercase tracking-wider text-muted">UPI ID</label>
+                        <input type="text" class="form-control bg-light border-0 py-3 rounded-4" name="upi_id" value="{{ settings.upi_id|default_if_none:'' }}" placeholder="e.g. yourname@ybl">
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-600 shadow-sm">Save Settings</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .tracking-wider { letter-spacing: 0.05em; }
+    .fw-800 { font-weight: 800; }
+    .fw-700 { font-weight: 700; }
+    .fw-600 { font-weight: 600; }
+</style>
+{% endblock %}

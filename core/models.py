@@ -3,6 +3,7 @@ from decimal import Decimal, InvalidOperation
 from django.utils import timezone
 from django.contrib.auth.models import User
 import re
+import uuid
 
 
 PRODUCT_TYPES = (
@@ -73,6 +74,7 @@ class DeliveryBoy(models.Model):
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15)
     is_active = models.BooleanField(default=True)
+    access_token = models.UUIDField(default=uuid.uuid4, null=True, blank=True)
 
     class Meta:
         unique_together = ('shopkeeper', 'phone')
@@ -265,3 +267,65 @@ class MilkTransaction(models.Model):
 
     def __str__(self):
         return f"{self.customer.name} - {self.payment_status} - {self.amount}"
+
+
+class Notification(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="notifications")
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} - {self.customer.name}"
+
+
+class ShopSettings(models.Model):
+    shopkeeper = models.OneToOneField(User, on_delete=models.CASCADE, related_name='shop_settings')
+    whatsapp_instance_id = models.CharField(max_length=255, blank=True, null=True, help_text="UltraMsg Instance ID")
+    whatsapp_token = models.CharField(max_length=255, blank=True, null=True, help_text="UltraMsg Token")
+    is_whatsapp_enabled = models.BooleanField(default=False)
+    upi_id = models.CharField(max_length=50, blank=True, null=True, help_text="UPI ID for dynamic QR codes on bills")
+
+    def __str__(self):
+        return f"Settings for {self.shopkeeper.username}"
+
+class Expense(models.Model):
+    EXPENSE_CATEGORIES = (
+        ("MILK_PURCHASE", "Milk Purchase"),
+        ("SALARY", "Salary"),
+        ("TRANSPORT", "Transport"),
+        ("FODDER", "Fodder"),
+        ("ELECTRICITY", "Electricity"),
+        ("MAINTENANCE", "Maintenance"),
+        ("OTHER", "Other"),
+    )
+    shopkeeper = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateField(default=timezone.localdate)
+    category = models.CharField(max_length=20, choices=EXPENSE_CATEGORIES, default="OTHER")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.category} - ₹{self.amount} ({self.date})"
+
+
+class Subscription(models.Model):
+    shopkeeper = models.ForeignKey(User, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
+    start_date = models.DateField(default=timezone.localdate)
+    
+    product_type = models.CharField(max_length=20, choices=PRODUCT_TYPES, default="MILK")
+    brand = models.CharField(max_length=20, choices=MilkOrder.MILK_BRANDS, blank=True, null=True)
+    milk_type = models.CharField(max_length=10, choices=MilkOrder.MILK_TYPES, blank=True, null=True)
+    pack_size = models.DecimalField(max_digits=3, decimal_places=1, blank=True, null=True)
+    packets = models.PositiveIntegerField(default=0)
+    
+    quantity = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    unit = models.CharField(max_length=10, default="L")
+    rate = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+
+    def __str__(self):
+        return f"Sub: {self.customer.name} - {self.product_type}"
+

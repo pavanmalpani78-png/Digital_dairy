@@ -1,31 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Login | Digital Dairy</title>
-    <link rel="stylesheet" href="/static/css/customer_style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
-</head>
-<body style="background-color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;">
-    
-    <div style="max-width: 450px; width: 100%;">
-        <!-- Logo -->
-        <div style="text-align: center; margin-bottom: 40px;">
-            <a href="/" class="logo" style="justify-content: center;">
-                <i class="fas fa-droplet" style="color: var(--primary);"></i> DIGITAL DAIRY
-            </a>
-        </div>
+{% extends 'customer_panel/customer_base.html' %}
 
-        <div class="card animate-up" style="padding: 40px; border-radius: 30px; box-shadow: 0 40px 80px -20px rgba(0,0,0,0.1); border: none;">
-            <h2 style="font-weight: 800; margin-bottom: 8px; text-align: center;">Welcome Back</h2>
-            <p style="text-align: center; color: var(--text-meta); margin-bottom: 35px; font-size: 0.95rem;">Login to your customer portal</p>
+{% block title %}Customer Login | Digital Dairy{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center mt-5">
+    <div style="max-width: 450px; width: 100%;">
+        <div class="card-enterprise p-4 p-md-5">
+            <h2 class="fw-800 text-center mb-2">Welcome Back</h2>
+            <p class="text-muted text-center mb-4">Login to your customer portal</p>
 
             {% if messages %}
                 {% for message in messages %}
-                    <div style="background: #fef2f2; color: #dc2626; padding: 12px 16px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; margin-bottom: 20px; border: 1px solid #fee2e2;">
-                        <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i> {{ message }}
+                    <div class="alert alert-danger d-flex align-items-center py-2" role="alert">
+                        <i class="bi bi-exclamation-circle-fill me-2"></i>
+                        <div>{{ message }}</div>
                     </div>
                 {% endfor %}
             {% endif %}
@@ -34,51 +22,50 @@
                 {% csrf_token %}
 
                 <!-- Shop Code (optional but recommended for security) -->
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-weight: 700; color: var(--text-meta); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 8px;">
-                        Shop Code <span style="font-weight: 400; text-transform: none; font-size: 0.75rem;">(given by your dairy owner)</span>
+                <div class="mb-3">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider mb-2">
+                        Shop Code <span class="fw-normal text-none text-lowercase">(given by your dairy owner)</span>
                     </label>
-                    <div style="position: relative;">
-                        <i class="fas fa-store" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-meta); font-size: 0.9rem;"></i>
-                        <input type="text" name="shop_code" id="shop_code" placeholder="e.g. ramesh_dairy" autocomplete="organization" style="width: 100%; padding: 15px 15px 15px 45px; border-radius: 14px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 600; font-family: inherit; font-size: 0.95rem;">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-shop"></i></span>
+                        <input type="text" name="shop_code" id="shop_code" class="form-control form-control-lg bg-light border-start-0 ps-0 fw-600" placeholder="e.g. ramesh_dairy" autocomplete="organization">
                     </div>
-                    <p style="font-size: 0.75rem; color: var(--text-meta); margin-top: 5px; margin-left: 4px;">
-                        <i class="fas fa-shield-halved"></i> Helps keep your data secure &amp; separate from other shops.
-                    </p>
-                </div>
-
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; font-weight: 700; color: var(--text-meta); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 8px;">Phone Number</label>
-                    <div style="position: relative;">
-                        <i class="fas fa-phone" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-meta); font-size: 0.9rem;"></i>
-                        <input type="text" name="phone" id="phone" placeholder="Registered Phone" required autocomplete="tel" style="width: 100%; padding: 15px 15px 15px 45px; border-radius: 14px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 600; font-family: inherit; font-size: 0.95rem;">
+                    <div class="form-text small mt-1">
+                        <i class="bi bi-shield-check"></i> Helps keep your data secure.
                     </div>
                 </div>
 
-                <div style="margin-bottom: 30px;">
-                    <label style="display: block; font-weight: 700; color: var(--text-meta); font-size: 0.8rem; text-transform: uppercase; margin-bottom: 8px;">Access Password</label>
-                    <div style="position: relative;">
-                        <i class="fas fa-lock" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-meta); font-size: 0.9rem;"></i>
-                        <input type="password" name="password" id="password" placeholder="••••••••" required autocomplete="current-password" style="width: 100%; padding: 15px 15px 15px 45px; border-radius: 14px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: 600; font-family: inherit; font-size: 0.95rem;">
+                <div class="mb-3">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider mb-2">Phone Number</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-telephone"></i></span>
+                        <input type="text" name="phone" id="phone" class="form-control form-control-lg bg-light border-start-0 ps-0 fw-600" placeholder="Registered Phone" required autocomplete="tel">
                     </div>
                 </div>
 
-                <button type="submit" id="customer-login-btn" class="btn-primary" style="width: 100%; padding: 16px; justify-content: center; font-size: 1rem; border-radius: 14px;">
-                    Login to Portal <i class="fas fa-arrow-right"></i>
+                <div class="mb-4">
+                    <label class="form-label fw-700 text-muted small text-uppercase tracking-wider mb-2">Access Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                        <input type="password" name="password" id="password" class="form-control form-control-lg bg-light border-start-0 ps-0 fw-600" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                </div>
+
+                <button type="submit" id="customer-login-btn" class="btn btn-primary w-100 py-3 fw-700 fs-6 rounded-3 mt-2">
+                    Login to Portal <i class="bi bi-arrow-right ms-2"></i>
                 </button>
             </form>
 
-            <div style="margin-top: 30px; text-align: center;">
-                <p style="color: var(--text-meta); font-size: 0.85rem; margin-bottom: 0;">Don't have access? <br>Ask your dairy owner to set up your login.</p>
+            <div class="mt-4 text-center">
+                <p class="text-muted small mb-0">Don't have access? <br>Ask your dairy owner to set up your login.</p>
             </div>
         </div>
 
-        <div style="text-align: center; margin-top: 30px;">
-            <a href="/" style="text-decoration: none; color: var(--text-meta); font-weight: 700; font-size: 0.85rem;">
-                <i class="fas fa-arrow-left"></i> Back to Home
+        <div class="text-center mt-4">
+            <a href="{% url 'customer_home' %}" class="text-decoration-none text-muted fw-700 small">
+                <i class="bi bi-arrow-left me-1"></i> Back to Home
             </a>
         </div>
     </div>
-
-</body>
-</html>
+</div>
+{% endblock %}

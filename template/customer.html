@@ -4,31 +4,38 @@
 {% block title %}Customers | Milk Khata Digital Dairy{% endblock %}
 
 {% block content %}
-<div class="glass-card overflow-hidden">
+<div class="card-enterprise overflow-hidden mb-5">
     <!-- Header -->
     <div class="bg-primary p-4 text-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
         <div>
-            <h3 class="fw-800 mb-1 text-white">Customers</h3>
+            <h3 class="fw-bold mb-1 text-white">Customers</h3>
             <p class="mb-0 opacity-75 small">Manage your customer list and registry</p>
         </div>
-        <a href="{% url 'add_customer' %}" class="btn btn-light rounded-pill px-4 fw-600">
-            <i class="bi bi-person-plus-fill me-2"></i> Add Customer
-        </a>
+        <div class="d-flex gap-2">
+            <a href="{% url 'export_customers_csv' %}" class="btn btn-outline-light px-4 fw-600">
+                <i class="bi bi-file-earmark-excel-fill me-2"></i> Export CSV
+            </a>
+            <a href="{% url 'add_customer' %}" class="btn btn-light px-4 fw-600 text-primary">
+                <i class="bi bi-person-plus-fill me-2"></i> Add Customer
+            </a>
+        </div>
     </div>
 
     <!-- Content -->
     <div class="p-4">
         <div class="row align-items-center g-3 mb-4">
             <div class="col-md-6">
-                <div class="muted small text-uppercase tracking-wider fw-700">Total Records</div>
-                <div class="h4 fw-800 mb-0"><span class="badge-soft">{{ customers|length }}</span> Customers Registered</div>
+                <div class="text-muted small text-uppercase tracking-wider fw-600">Total Records</div>
+                <div class="h4 fw-bold mb-0"><span class="badge-soft">{{ customers|length }}</span> Customers Registered
+                </div>
             </div>
             <div class="col-md-6">
                 <div class="input-group">
-                    <span class="input-group-text bg-light border-0 rounded-start-4 px-3 text-muted">
+                    <span class="input-group-text bg-light border-0 px-3 text-muted">
                         <i class="bi bi-search"></i>
                     </span>
-                    <input id="searchInput" type="text" class="form-control bg-light border-0 py-2 rounded-end-4" placeholder="Search by name, phone or address...">
+                    <input id="searchInput" type="text" class="form-control bg-light border-0 py-2"
+                        placeholder="Search by name, phone or address...">
                 </div>
             </div>
         </div>
@@ -37,22 +44,28 @@
             <table class="table table-hover align-middle mb-0" id="customerTable">
                 <thead class="bg-light">
                     <tr>
-                        <th class="border-0 rounded-start-3 px-4 py-3 small fw-700 text-muted text-uppercase tracking-wider">Name</th>
-                        <th class="border-0 py-3 small fw-700 text-muted text-uppercase tracking-wider">Phone</th>
-                        <th class="border-0 py-3 small fw-700 text-muted text-uppercase tracking-wider">Address</th>
-                        <th class="border-0 rounded-end-3 py-3 small fw-700 text-muted text-uppercase tracking-wider text-end px-4">Actions</th>
+                        <th class="border-0 px-4 py-3 small fw-600 text-muted text-uppercase tracking-wider">Name</th>
+                        <th class="border-0 py-3 small fw-600 text-muted text-uppercase tracking-wider">Phone</th>
+                        <th class="border-0 py-3 small fw-600 text-muted text-uppercase tracking-wider">Address</th>
+                        <th class="border-0 py-3 small fw-600 text-muted text-uppercase tracking-wider text-end px-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="border-top-0">
                     {% for c in customers %}
-                    <tr class="border-bottom border-light">
-                        <td class="px-4 py-3 fw-700">{{ c.name }}</td>
+                    <tr class="border-bottom">
+                        <td class="px-4 py-3 fw-600 text-dark">{{ c.name }}</td>
                         <td class="py-3 text-muted">{{ c.phone|default:"-" }}</td>
                         <td class="py-3 text-muted small" style="max-width: 250px;">{{ c.address|default:"-" }}</td>
                         <td class="py-3 text-end px-4">
                             <div class="d-flex gap-2 justify-content-end">
-                                <a href="{% url 'edit_customer' c.id %}" class="btn btn-sm btn-outline-primary border-2 rounded-pill px-3 fw-600">Edit</a>
-                                <a href="{% url 'delete_customer' c.id %}" class="btn btn-sm btn-outline-danger border-2 rounded-pill px-3 fw-600" onclick="return confirm('Delete customer: {{ c.name }} ?')">Delete</a>
+                                {% if c.wa_url %}
+                                <a href="{{ c.wa_url }}" target="_blank" class="btn btn-sm btn-success px-3 fw-500">
+                                    <i class="bi bi-whatsapp"></i> Invite
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'edit_customer' c.id %}" class="btn btn-sm btn-outline-primary px-3 fw-500">Edit</a>
+                                <a href="{% url 'delete_customer' c.id %}" class="btn btn-sm btn-outline-danger px-3 fw-500"
+                                    onclick="return confirm('Delete customer: {{ c.name }} ?')">Delete</a>
                             </div>
                         </td>
                     </tr>
@@ -72,28 +85,59 @@
 
 {% block extra_js %}
 <script>
-    const searchInput = document.getElementById("searchInput");
-    const table = document.getElementById("customerTable");
-    const rows = table.querySelectorAll("tbody tr");
-
-    searchInput.addEventListener("keyup", function () {
-        const q = this.value.toLowerCase().trim();
-        rows.forEach(row => {
-            const text = row.innerText.toLowerCase();
-            row.style.display = text.includes(q) ? "" : "none";
-        });
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchInput = document.getElementById("searchInput");
+        const table = document.getElementById("customerTable");
+        
+        if (searchInput && table) {
+            const rows = table.querySelectorAll("tbody tr");
+            searchInput.addEventListener("keyup", function () {
+                const q = this.value.toLowerCase().trim();
+                rows.forEach(row => {
+                    const text = row.innerText.toLowerCase();
+                    row.style.display = text.includes(q) ? "" : "none";
+                });
+            });
+        }
     });
 </script>
 {% endblock %}
 
 <style>
-    .tracking-wider { letter-spacing: 0.05em; }
-    .fw-800 { font-weight: 800; }
-    .fw-700 { font-weight: 700; }
-    .fw-600 { font-weight: 600; }
-    .rounded-start-4 { border-top-left-radius: 1rem !important; border-bottom-left-radius: 1rem !important; }
-    .rounded-end-4 { border-top-right-radius: 1rem !important; border-bottom-right-radius: 1rem !important; }
-    .rounded-start-3 { border-top-left-radius: 0.75rem !important; border-bottom-left-radius: 0.75rem !important; }
-    .rounded-end-3 { border-top-right-radius: 0.75rem !important; border-bottom-right-radius: 0.75rem !important; }
+    .tracking-wider {
+        letter-spacing: 0.05em;
+    }
+
+    .fw-800 {
+        font-weight: 800;
+    }
+
+    .fw-700 {
+        font-weight: 700;
+    }
+
+    .fw-600 {
+        font-weight: 600;
+    }
+
+    .rounded-start-4 {
+        border-top-left-radius: 1rem !important;
+        border-bottom-left-radius: 1rem !important;
+    }
+
+    .rounded-end-4 {
+        border-top-right-radius: 1rem !important;
+        border-bottom-right-radius: 1rem !important;
+    }
+
+    .rounded-start-3 {
+        border-top-left-radius: 0.75rem !important;
+        border-bottom-left-radius: 0.75rem !important;
+    }
+
+    .rounded-end-3 {
+        border-top-right-radius: 0.75rem !important;
+        border-bottom-right-radius: 0.75rem !important;
+    }
 </style>
 {% endblock %}

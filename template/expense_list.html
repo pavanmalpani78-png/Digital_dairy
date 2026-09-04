@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Expenses | Milk Khata Digital Dairy{% endblock %}
+
+{% block content %}
+<div class="card-enterprise overflow-hidden mb-5">
+    <div class="bg-danger p-4 text-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+        <div>
+            <h3 class="fw-bold mb-1 text-white">Expenses (Profit & Loss)</h3>
+            <p class="mb-0 opacity-75 small">Track your monthly shop expenses</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'add_expense' %}" class="btn btn-light px-4 fw-600 text-danger">
+                <i class="bi bi-plus-circle-fill me-2"></i> Add Expense
+            </a>
+        </div>
+    </div>
+
+    <div class="p-3 p-md-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="card bg-danger-subtle border-0 p-3 mb-4 d-inline-block rounded-4">
+            <span class="text-danger fw-600">Total Logged Expenses: <span class="fs-4 fw-800 ms-2">₹{{ total_expenses }}</span></span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="py-3 text-muted text-uppercase tracking-wider small fw-600 rounded-start-4">Date</th>
+                        <th class="py-3 text-muted text-uppercase tracking-wider small fw-600">Category</th>
+                        <th class="py-3 text-muted text-uppercase tracking-wider small fw-600">Description</th>
+                        <th class="py-3 text-muted text-uppercase tracking-wider small fw-600">Amount</th>
+                        <th class="py-3 text-muted text-uppercase tracking-wider small fw-600 rounded-end-4 text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    {% for expense in expenses %}
+                    <tr>
+                        <td class="fw-500">{{ expense.date }}</td>
+                        <td><span class="badge bg-secondary">{{ expense.get_category_display }}</span></td>
+                        <td class="text-muted">{{ expense.description|default:"-" }}</td>
+                        <td class="fw-bold text-danger">₹{{ expense.amount }}</td>
+                        <td class="text-end pe-3">
+                            <form action="{% url 'delete_expense' expense.id %}" method="post" class="d-inline" onsubmit="return confirm('Delete this expense?');">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-outline-danger border-0"><i class="bi bi-trash3-fill"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="text-muted mb-2"><i class="bi bi-receipt fs-1 opacity-50"></i></div>
+                            <h5 class="fw-600 text-dark">No Expenses Logged</h5>
+                            <p class="text-muted small">Keep track of your costs to calculate net profit accurately.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

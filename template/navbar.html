@@ -1,10 +1,10 @@
-<nav class="navbar navbar-expand-xl navbar-blur sticky-top py-2">
+<nav class="navbar navbar-expand-xl navbar-enterprise sticky-top py-2">
   <div class="container-fluid px-lg-5">
     <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% url 'home' %}">
       <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
         <i class="bi bi-droplet-fill text-white" style="font-size: 12px;"></i>
       </div>
-      <span class="text-gradient fs-5">Digital Dairy</span>
+      <span class="fs-5 text-dark">Digital Dairy</span>
     </a>
     
     <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
@@ -59,10 +59,19 @@
             <i class="bi bi-person-badge me-1"></i> Drivers
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link px-2 rounded-pill small fw-600 {% if request.resolver_match.url_name == 'settings_page' %}bg-primary text-white shadow-sm{% endif %}" href="{% url 'settings_page' %}">
+            <i class="bi bi-gear-fill me-1"></i> Settings
+          </a>
+        </li>
       </ul>
       {% endif %}
       
       <div class="ms-auto d-flex align-items-center gap-2">
+        <div id="google_translate_element" class="me-2 mt-1"></div>
+        <button id="themeToggle" class="btn btn-light border-0 rounded-circle me-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px;" title="Toggle Dark Mode">
+            <i class="bi bi-moon-fill text-primary" id="themeIcon"></i>
+        </button>
         {% if user.is_authenticated %}
           <div class="d-flex align-items-center gap-2 me-2">
             <div class="d-none d-xxl-block text-end">
@@ -86,4 +95,39 @@
   .fw-600 { font-weight: 600; }
   .navbar-nav .nav-link { transition: all 0.2s ease; }
   .navbar-nav .nav-link:hover:not(.bg-primary) { background: rgba(0, 97, 255, 0.05); color: var(--primary); }
-</style>
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+      const themeToggle = document.getElementById('themeToggle');
+      const themeIcon = document.getElementById('themeIcon');
+      
+      function updateIcon(theme) {
+          if(theme === 'dark') {
+              themeIcon.classList.remove('bi-moon-fill');
+              themeIcon.classList.add('bi-sun-fill', 'text-warning');
+              themeIcon.classList.remove('text-primary');
+          } else {
+              themeIcon.classList.remove('bi-sun-fill', 'text-warning');
+              themeIcon.classList.add('bi-moon-fill', 'text-primary');
+          }
+      }
+
+      // Initialize icon on load
+      updateIcon(document.documentElement.getAttribute('data-theme'));
+
+      themeToggle.addEventListener('click', () => {
+          const currentTheme = document.documentElement.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          
+          if(newTheme === 'dark') {
+              document.documentElement.setAttribute('data-theme', 'dark');
+          } else {
+              document.documentElement.removeAttribute('data-theme');
+          }
+          
+          localStorage.setItem('theme', newTheme);
+          updateIcon(newTheme);
+      });
+  });
+</script>

@@ -48,6 +48,9 @@
                             {% endif %}
                         </td>
                         <td class="py-3 text-end px-4">
+                            <a href="javascript:void(0)" class="btn btn-sm btn-outline-primary border-2 rounded-pill px-3 fw-600 py-1 me-1" onclick="navigator.clipboard.writeText(window.location.origin + '{% url 'delivery_run_sheet' driver.access_token %}'); alert('Link copied to clipboard!');">
+                                <i class="bi bi-link-45deg me-1"></i> Copy Link
+                            </a>
                             <a href="{% url 'delete_driver' driver.id %}" class="btn btn-sm btn-outline-danger border-2 rounded-pill px-3 fw-600 py-1" onclick="return confirm('Remove this driver?')">
                                 <i class="bi bi-trash3 me-1"></i> Remove
                             </a>

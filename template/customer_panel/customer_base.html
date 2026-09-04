@@ -1,0 +1,150 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Customer Portal | Digital Dairy{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #0ea5e9;
+            --bg-main: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --stroke: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Navbar Enterprise */
+        .navbar-enterprise {
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--stroke);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--text-main) !important;
+            letter-spacing: -0.5px;
+        }
+
+        .navbar-nav .nav-link {
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .navbar-nav .nav-link:hover, .navbar-nav .nav-link.active {
+            color: var(--primary);
+        }
+
+        /* Card Enterprise */
+        .card-enterprise {
+            background-color: var(--card-bg);
+            border: 1px solid var(--stroke);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* General Utilities */
+        .fw-500 { font-weight: 500; }
+        .fw-600 { font-weight: 600; }
+        .fw-700 { font-weight: 700; }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            font-weight: 500;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        .badge-soft {
+            background-color: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+            padding: 0.35em 0.65em;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-enterprise sticky-top py-3">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{% if user.is_authenticated %}{% url 'customer_dashboard' %}{% else %}{% url 'customer_home' %}{% endif %}">
+                <div class="bg-primary rounded d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                    <i class="bi bi-droplet-fill text-white fs-6"></i>
+                </div>
+                <span>Digital Dairy</span>
+            </a>
+            
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCustomer">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarCustomer">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'customer_dashboard' %}active{% endif %}" href="{% url 'customer_dashboard' %}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'customer_my_orders' %}active{% endif %}" href="{% url 'customer_my_orders' %}">My Orders</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'customer_statement' %}active{% endif %}" href="{% url 'customer_statement' %}">Statement</a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <div class="d-flex align-items-center gap-3">
+                    {% if user.is_authenticated %}
+                    <div class="text-end d-none d-lg-block me-2">
+                        <div class="fw-600 text-dark" style="line-height: 1.2;">{{ customer.name|default:user.username }}</div>
+                        <div class="text-muted small" style="font-size: 0.75rem;">Customer</div>
+                    </div>
+                    <a href="{% url 'customer_logout' %}" class="btn btn-outline-danger px-4 fw-500">Logout</a>
+                    {% else %}
+                    <a href="{% url 'customer_login' %}" class="btn btn-primary px-4 fw-500">Login</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="py-5">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-4 text-center text-muted border-top mt-auto bg-white">
+        <div class="container">
+            <small>&copy; 2026 Digital Dairy Management System. All rights reserved.</small>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

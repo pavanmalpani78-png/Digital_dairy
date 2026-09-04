@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add Expense | Milk Khata Digital Dairy{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card-enterprise p-4 p-md-5">
+            <h3 class="fw-800 mb-2">Log New Expense</h3>
+            <p class="text-muted mb-4">Record your daily costs to accurately track net profit.</p>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label class="form-label fw-600 small text-uppercase tracking-wider text-muted">Date</label>
+                    <input type="date" class="form-control bg-light border-0 py-3 rounded-4" name="date" value="{{ today|date:'Y-m-d' }}" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-600 small text-uppercase tracking-wider text-muted">Category</label>
+                    <select name="category" class="form-select bg-light border-0 py-3 rounded-4" required>
+                        <option value="" selected disabled>-- Select Category --</option>
+                        {% for code, name in categories %}
+                        <option value="{{ code }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-600 small text-uppercase tracking-wider text-muted">Amount (₹)</label>
+                    <input type="number" step="0.01" class="form-control bg-light border-0 py-3 rounded-4" name="amount" placeholder="0.00" required>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label fw-600 small text-uppercase tracking-wider text-muted">Description (Optional)</label>
+                    <input type="text" class="form-control bg-light border-0 py-3 rounded-4" name="description" placeholder="e.g., Bought 20kg cow fodder">
+                </div>
+                
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="{% url 'expense_list' %}" class="btn btn-light btn-lg rounded-pill px-4 fw-600">Cancel</a>
+                    <button type="submit" class="btn btn-danger btn-lg rounded-pill px-5 fw-600 shadow-sm">Save Expense</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
