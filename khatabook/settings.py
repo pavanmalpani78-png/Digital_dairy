@@ -20,14 +20,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-96k$!mudk4*y(-)b)j00qs6&&t*#mi=&$!7#m_x!_&u&4vx3sh'
+# Production secrets and host settings come from the environment.
+SECRET_KEY = os.environ.get('SECRET_KEY', 'local-development-only-insecure-key')
+DEBUG = os.environ.get('DEBUG', 'False').lower() in {'1', 'true', 'yes'}
+ALLOWED_HOSTS = [host.strip() for host in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if host.strip()]
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-# Read from environment variable (set DEBUG=False on Render)
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-
-ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+if RENDER_EXTERNAL_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
 
 
 # Application definition
@@ -140,15 +148,9 @@ LOGIN_REDIRECT_URL = 'home'
 import dj_database_url
 
 DATABASES = {
-    'default': dj_database_url.config(default='sqlite:///db.sqlite3')
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        ssl_require=(not DEBUG and os.environ.get('DATABASE_URL', '').startswith(('postgres://', 'postgresql://'))),
+    )
 }
-
-# ✅ Required for HTTPS POST forms (CSRF) on Render.com
-# Add your Render URL here - update with your actual Render app URL
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS = [RENDER_EXTERNAL_HOSTNAME, 'localhost', '127.0.0.1']
-    CSRF_TRUSTED_ORIGINS = [
-        f'https://{RENDER_EXTERNAL_HOSTNAME}',
-        'http://localhost:8000',
-    ]
